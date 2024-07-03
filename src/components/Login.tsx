@@ -1,16 +1,24 @@
-// src/components/Login.tsx
-import React, { useState } from 'react';
-import { Avatar, Button, TextField, Box, Typography, Container } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
+import React, { useState, useContext } from 'react';
+import { Container, Box, TextField, Button, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
+
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    console.log({ username, password });
+    if (login(username, password)) {
+      navigate('/');
+    } else {
+      setError('Credenciales incorrectas');
+    }
   };
 
   return (
@@ -23,19 +31,16 @@ const Login: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-          <LockOutlinedIcon />
-        </Avatar>
         <Typography component="h1" variant="h5">
-          Iniciar Sesión
+          Iniciar sesión
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
           <TextField
             margin="normal"
             required
             fullWidth
             id="username"
-            label="Nombre de Usuario"
+            label="Usuario"
             name="username"
             autoComplete="username"
             autoFocus
@@ -54,13 +59,14 @@ const Login: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {error && <Typography color="error">{error}</Typography>}
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Iniciar Sesión
+            Iniciar sesión
           </Button>
         </Box>
       </Box>

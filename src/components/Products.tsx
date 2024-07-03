@@ -259,7 +259,7 @@ const resetEditState = () => {
             value={searchTerm}
             onChange={handleSearchChange}
           />
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button variant="contained" color="primary" onClick={handleClickOpen} sx={{width:'200px',marginLeft:1}}>
             Agregar Producto
           </Button>
         </Box>

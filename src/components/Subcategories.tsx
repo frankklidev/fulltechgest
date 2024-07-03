@@ -1,10 +1,7 @@
-// src/components/Subcategories.tsx
 import React, { useState, useEffect } from 'react';
 import { Container, Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, CircularProgress, Backdrop, TablePagination, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { supabase } from '../supabaseClient';
 
 interface Category {
@@ -30,6 +27,7 @@ const Subcategories: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [open, setOpen] = useState<boolean>(false);
+  const [editOpen, setEditOpen] = useState<boolean>(false); // Estado para el modal de edición
 
   useEffect(() => {
     fetchCategories();
@@ -38,9 +36,7 @@ const Subcategories: React.FC = () => {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*');
+    const { data, error } = await supabase.from('categories').select('*');
     if (error) console.error('Error fetching categories:', error);
     else setCategories(data || []);
     setLoading(false);
@@ -48,9 +44,7 @@ const Subcategories: React.FC = () => {
 
   const fetchSubcategories = async () => {
     setLoading(true);
-    let { data, error } = await supabase
-      .from('subcategories')
-      .select('*');
+    let { data, error } = await supabase.from('subcategories').select('*');
     if (error) console.error('Error fetching subcategories:', error);
     else setSubcategories(data || []);
     setLoading(false);
@@ -77,6 +71,7 @@ const Subcategories: React.FC = () => {
     setEditSubcategoryId(id);
     setEditSubcategoryName(name);
     setEditSelectedCategory(categoryId);
+    setEditOpen(true); // Abrir el modal de edición
   };
 
   const handleSaveEdit = async () => {
@@ -91,6 +86,7 @@ const Subcategories: React.FC = () => {
       setEditSubcategoryId(null);
       setEditSubcategoryName('');
       fetchSubcategories();
+      setEditOpen(false); // Cerrar el modal de edición
     }
     setLoading(false);
   };
@@ -123,9 +119,13 @@ const Subcategories: React.FC = () => {
     setOpen(false);
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+  };
+
   return (
     <Container component="main" maxWidth="md">
-      <Backdrop open={loading} style={{ zIndex: 1000 }}>
+      <Backdrop open={loading} style={{ zIndex: 1400 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
       <Box
@@ -145,7 +145,6 @@ const Subcategories: React.FC = () => {
           <DialogTitle>Agregar Subcategoría</DialogTitle>
           <DialogContent>
             <Box component="form" onSubmit={handleAddSubcategory} noValidate sx={{ mt: 3 }}>
-            
               <TextField
                 margin="normal"
                 required
@@ -185,8 +184,52 @@ const Subcategories: React.FC = () => {
             </Box>
           </DialogContent>
         </Dialog>
+
+        {/* Modal de edición */}
+        <Dialog open={editOpen} onClose={handleEditClose}>
+          <DialogTitle>Editar Subcategoría</DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} noValidate sx={{ mt: 3 }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="editSubcategoryName"
+                label="Nombre de la Subcategoría"
+                name="editSubcategoryName"
+                autoComplete="off"
+                value={editSubcategoryName}
+                onChange={(e) => setEditSubcategoryName(e.target.value)}
+              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel id="edit-select-category-label">Categoría</InputLabel>
+                <Select
+                  labelId="edit-select-category-label"
+                  id="edit-select-category"
+                  value={editSelectedCategory}
+                  label="Categoría"
+                  onChange={(e) => setEditSelectedCategory(e.target.value as number)}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <DialogActions>
+                <Button onClick={handleEditClose} color="secondary">
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="contained" color="primary">
+                  Guardar
+                </Button>
+              </DialogActions>
+            </Box>
+          </DialogContent>
+        </Dialog>
+
         <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-          
           <Table sx={{ minWidth: 300 }} aria-label="simple table">
             <TableHead>
               <TableRow>
@@ -199,59 +242,18 @@ const Subcategories: React.FC = () => {
               {subcategories.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((subcategory) => (
                 <TableRow key={subcategory.id}>
                   <TableCell sx={{ width: '45%', padding: '8px' }}>
-                    {editSubcategoryId === subcategory.id ? (
-                      <TextField
-                        fullWidth
-                        value={editSubcategoryName}
-                        onChange={(e) => setEditSubcategoryName(e.target.value)}
-                        margin="normal"
-                      />
-                    ) : (
-                      subcategory.name
-                    )}
+                    {subcategory.name}
                   </TableCell>
                   <TableCell sx={{ width: '35%', padding: '8px' }}>
-                    {editSubcategoryId === subcategory.id ? (
-                      <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel id="edit-select-category-label">Categoría</InputLabel>
-                        <Select
-                          labelId="edit-select-category-label"
-                          id="edit-select-category"
-                          value={editSelectedCategory}
-                          label="Categoría"
-                          onChange={(e) => setEditSelectedCategory(e.target.value as number)}
-                        >
-                          {categories.map((category) => (
-                            <MenuItem key={category.id} value={category.id}>
-                              {category.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    ) : (
-                      categories.find(category => category.id === subcategory.category_id)?.name
-                    )}
+                    {categories.find(category => category.id === subcategory.category_id)?.name}
                   </TableCell>
                   <TableCell sx={{ width: '20%', padding: '8px' }} align="right">
-                    {editSubcategoryId === subcategory.id ? (
-                      <>
-                        <IconButton onClick={handleSaveEdit} color="primary" disabled={loading}>
-                          <SaveIcon />
-                        </IconButton>
-                        <IconButton onClick={() => setEditSubcategoryId(null)} color="secondary" disabled={loading}>
-                          <CancelIcon />
-                        </IconButton>
-                      </>
-                    ) : (
-                      <>
-                        <IconButton onClick={() => handleEditSubcategory(subcategory.id, subcategory.name, subcategory.category_id)} color="primary" disabled={loading}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={() => handleDeleteSubcategory(subcategory.id)} sx={{ color: 'red' }} disabled={loading}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    )}
+                    <IconButton onClick={() => handleEditSubcategory(subcategory.id, subcategory.name, subcategory.category_id)} color="primary" disabled={loading}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteSubcategory(subcategory.id)} sx={{ color: 'red' }} disabled={loading}>
+                      <DeleteIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}

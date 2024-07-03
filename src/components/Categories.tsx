@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, CircularProgress, Backdrop, TablePagination } from '@mui/material';
+import { Container, Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, CircularProgress, Backdrop, TablePagination, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { supabase } from '../supabaseClient';
 
 interface Category {
@@ -19,6 +17,7 @@ const Categories: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
+  const [editOpen, setEditOpen] = useState<boolean>(false); // Estado para el modal de edición
 
   useEffect(() => {
     fetchCategories();
@@ -26,9 +25,7 @@ const Categories: React.FC = () => {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*');
+    const { data, error } = await supabase.from('categories').select('*');
     if (error) {
       console.error(error);
     } else {
@@ -56,6 +53,7 @@ const Categories: React.FC = () => {
   const handleEditCategory = (id: number, name: string) => {
     setEditCategoryId(id);
     setEditCategoryName(name);
+    setEditOpen(true); // Abrir el modal de edición
   };
 
   const handleSaveEdit = async () => {
@@ -70,6 +68,7 @@ const Categories: React.FC = () => {
       setEditCategoryId(null);
       setEditCategoryName('');
       fetchCategories();
+      setEditOpen(false); // Cerrar el modal de edición
     }
     setLoading(false);
   };
@@ -97,9 +96,13 @@ const Categories: React.FC = () => {
     setPage(0);
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+  };
+
   return (
     <Container component="main" maxWidth="md">
-      <Backdrop open={loading} style={{ zIndex: 1000 }}>
+      <Backdrop open={loading} style={{ zIndex: 1400 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
       <Box
@@ -148,37 +151,15 @@ const Categories: React.FC = () => {
               {categories.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>
-                    {editCategoryId === category.id ? (
-                      <TextField
-                        fullWidth
-                        value={editCategoryName}
-                        onChange={(e) => setEditCategoryName(e.target.value)}
-                        margin="normal"
-                      />
-                    ) : (
-                      category.name
-                    )}
+                    {category.name}
                   </TableCell>
                   <TableCell align="right">
-                    {editCategoryId === category.id ? (
-                      <>
-                        <IconButton onClick={handleSaveEdit} color="primary" disabled={loading}>
-                          <SaveIcon />
-                        </IconButton>
-                        <IconButton onClick={() => setEditCategoryId(null)} color="secondary" disabled={loading}>
-                          <CancelIcon />
-                        </IconButton>
-                      </>
-                    ) : (
-                      <>
-                        <IconButton onClick={() => handleEditCategory(category.id, category.name)} color="primary" disabled={loading}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={() => handleDeleteCategory(category.id)} sx={{ color: 'red' }} disabled={loading}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    )}
+                    <IconButton onClick={() => handleEditCategory(category.id, category.name)} color="primary" disabled={loading}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteCategory(category.id)} sx={{ color: 'red' }} disabled={loading}>
+                      <DeleteIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -195,6 +176,34 @@ const Categories: React.FC = () => {
           />
         </TableContainer>
       </Box>
+
+      {/* Modal de edición */}
+      <Dialog open={editOpen} onClose={handleEditClose}>
+        <DialogTitle>Editar Categoría</DialogTitle>
+        <DialogContent>
+          <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} noValidate sx={{ mt: 3 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editCategoryName"
+              label="Nombre de la Categoría"
+              name="editCategoryName"
+              autoComplete="off"
+              value={editCategoryName}
+              onChange={(e) => setEditCategoryName(e.target.value)}
+            />
+            <DialogActions>
+              <Button onClick={handleEditClose} color="secondary">
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" color="primary">
+                Guardar
+              </Button>
+            </DialogActions>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };
