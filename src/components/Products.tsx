@@ -1,10 +1,10 @@
-// src/components/Products.tsx
-import React, { useState } from 'react';
-import { Container, Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, IconButton, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, CircularProgress, Backdrop } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { supabase } from '../supabaseClient';
 
 interface Category {
   id: number;
@@ -14,7 +14,7 @@ interface Category {
 interface Subcategory {
   id: number;
   name: string;
-  categoryId: number;
+  category_id: number;
 }
 
 interface Product {
@@ -23,24 +23,21 @@ interface Product {
   description: string;
   price: number;
   link: string;
-  categoryId: number;
-  subcategoryId: number;
+  category_id: number;
+  subcategory_id: number;
+  image_url?: string;
 }
 
 const Products: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([
-    { id: 1, name: 'Categoría 1' },
-    { id: 2, name: 'Categoría 2' }
-  ]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([
-    { id: 1, name: 'Subcategoría 1', categoryId: 1 },
-    { id: 2, name: 'Subcategoría 2', categoryId: 2 }
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [filteredSubcategories, setFilteredSubcategories] = useState<Subcategory[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productName, setProductName] = useState<string>('');
   const [productDescription, setProductDescription] = useState<string>('');
   const [productPrice, setProductPrice] = useState<number>(0);
   const [productLink, setProductLink] = useState<string>('');
+  const [productImage, setProductImage] = useState<File | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number>(1);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number>(1);
   const [editProductId, setEditProductId] = useState<number | null>(null);
@@ -48,30 +45,92 @@ const Products: React.FC = () => {
   const [editProductDescription, setEditProductDescription] = useState<string>('');
   const [editProductPrice, setEditProductPrice] = useState<number>(0);
   const [editProductLink, setEditProductLink] = useState<string>('');
+  const [editProductImage, setEditProductImage] = useState<File | null>(null);
   const [editSelectedCategory, setEditSelectedCategory] = useState<number>(1);
   const [editSelectedSubcategory, setEditSelectedSubcategory] = useState<number>(1);
   const [open, setOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleAddProduct = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    fetchCategories();
+    fetchSubcategories();
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const filtered = subcategories.filter((subcategory) => subcategory.category_id === selectedCategory);
+    setFilteredSubcategories(filtered);
+  }, [selectedCategory, subcategories]);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase.from('categories').select('*');
+    if (error) console.error('Error fetching categories:', error);
+    else setCategories(data || []);
+  };
+
+  const fetchSubcategories = async () => {
+    const { data, error } = await supabase.from('subcategories').select('*');
+    if (error) console.error('Error fetching subcategories:', error);
+    else setSubcategories(data || []);
+  };
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase.from('products').select('*');
+    if (error) console.error('Error fetching products:', error);
+    else setProducts(data || []);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    const { data, error } = await supabase.storage.from('products').upload(`public/${file.name}`, file);
+    if (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+    return data.path;
+  };
+
+  const handleImageDelete = async (imagePath: string) => {
+    const { error } = await supabase.storage.from('products').remove([imagePath]);
+    if (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
+
+  const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const newProduct: Product = {
-      id: products.length + 1,
-      name: productName,
-      description: productDescription,
-      price: productPrice,
-      link: productLink,
-      categoryId: selectedCategory,
-      subcategoryId: selectedSubcategory
-    };
-    setProducts([...products, newProduct]);
-    setProductName('');
-    setProductDescription('');
-    setProductPrice(0);
-    setProductLink('');
-    setSelectedCategory(1);
-    setSelectedSubcategory(1);
-    setOpen(false);
+    setLoading(true);
+    let imageUrl = '';
+    if (productImage) {
+      const imagePath = await handleImageUpload(productImage);
+      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+    }
+    const { data, error } = await supabase.from('products').insert([
+      {
+        name: productName,
+        description: productDescription,
+        price: productPrice,
+        link: productLink,
+        category_id: selectedCategory,
+        subcategory_id: selectedSubcategory,
+        image_url: imageUrl,
+      },
+    ]).select('*');
+    if (error) {
+      console.error('Error adding product:', error);
+      alert('Error adding product: ' + error.message);
+    } else if (data && data.length > 0) {
+      setProducts([...products, data[0]]);
+      setProductName('');
+      setProductDescription('');
+      setProductPrice(0);
+      setProductLink('');
+      setSelectedCategory(1);
+      setSelectedSubcategory(1);
+      setProductImage(null);
+      setOpen(false);
+    }
+    setLoading(false);
   };
 
   const handleEditProduct = (product: Product) => {
@@ -80,31 +139,68 @@ const Products: React.FC = () => {
     setEditProductDescription(product.description);
     setEditProductPrice(product.price);
     setEditProductLink(product.link);
-    setEditSelectedCategory(product.categoryId);
-    setEditSelectedSubcategory(product.subcategoryId);
+    setEditSelectedCategory(product.category_id);
+    setEditSelectedSubcategory(product.subcategory_id);
   };
 
-  const handleSaveEdit = () => {
-    setProducts(products.map(product => product.id === editProductId ? {
-      ...product,
-      name: editProductName,
-      description: editProductDescription,
-      price: editProductPrice,
-      link: editProductLink,
-      categoryId: editSelectedCategory,
-      subcategoryId: editSelectedSubcategory
-    } : product));
-    setEditProductId(null);
-    setEditProductName('');
-    setEditProductDescription('');
-    setEditProductPrice(0);
-    setEditProductLink('');
-    setEditSelectedCategory(1);
-    setEditSelectedSubcategory(1);
+  const handleSaveEdit = async () => {
+    setLoading(true);
+    let imageUrl = '';
+    let imagePath: string | null = '';
+    const currentProduct = products.find(product => product.id === editProductId);
+
+    if (editProductImage) {
+      // Eliminar la imagen anterior si existe
+      if (currentProduct?.image_url) {
+        const previousImagePath = currentProduct.image_url.split('/').slice(4).join('/');
+        await handleImageDelete(previousImagePath);
+      }
+      // Subir la nueva imagen
+      imagePath = await handleImageUpload(editProductImage);
+      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        name: editProductName,
+        description: editProductDescription,
+        price: editProductPrice,
+        link: editProductLink,
+        category_id: editSelectedCategory,
+        subcategory_id: editSelectedSubcategory,
+        image_url: imageUrl || currentProduct?.image_url || '', // Asegurarse de que sea una cadena vacía si es null
+      })
+      .eq('id', editProductId)
+      .select(); // Asegura que los datos retornados sean seleccionados
+
+    if (error) {
+      console.error('Error updating product:', error);
+    } else if (data && data.length > 0) {
+      setProducts(products.map((product) => (product.id === editProductId ? { ...product, ...data[0] } : product)));
+      setEditProductId(null);
+      setEditProductName('');
+      setEditProductDescription('');
+      setEditProductPrice(0);
+      setEditProductLink('');
+      setEditSelectedCategory(1);
+      setEditSelectedSubcategory(1);
+      setEditProductImage(null);
+    }
+    setLoading(false);
   };
 
-  const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter(product => product.id !== id));
+  const handleDeleteProduct = async (id: number) => {
+    setLoading(true);
+    const productToDelete = products.find(product => product.id === id);
+    if (productToDelete?.image_url) {
+      const imagePath = productToDelete.image_url.split('/').slice(4).join('/');
+      await handleImageDelete(imagePath);
+    }
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) console.error('Error deleting product:', error);
+    else setProducts(products.filter((product) => product.id !== id));
+    setLoading(false);
   };
 
   const handleClickOpen = () => {
@@ -119,17 +215,20 @@ const Products: React.FC = () => {
     setSearchTerm(event.target.value);
   };
 
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.price.toString().includes(searchTerm.toLowerCase()) ||
     product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    categories.find(category => category.id === product.categoryId)?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    subcategories.find(subcategory => subcategory.id === product.subcategoryId)?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    categories.find((category) => category.id === product.category_id)?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    subcategories.find((subcategory) => subcategory.id === product.subcategory_id)?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <Container component="main" maxWidth="lg">
+      <Backdrop open={loading} style={{ zIndex: 1000 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box
         sx={{
           marginTop: 8,
@@ -199,6 +298,12 @@ const Products: React.FC = () => {
                 value={productLink}
                 onChange={(e) => setProductLink(e.target.value)}
               />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setProductImage(e.target.files ? e.target.files[0] : null)}
+                style={{ marginTop: 16 }}
+              />
               <FormControl fullWidth sx={{ mt: 2 }}>
                 <InputLabel id="select-category-label">Categoría</InputLabel>
                 <Select
@@ -224,13 +329,11 @@ const Products: React.FC = () => {
                   label="Subcategoría"
                   onChange={(e) => setSelectedSubcategory(e.target.value as number)}
                 >
-                  {subcategories
-                    .filter((subcategory) => subcategory.categoryId === selectedCategory)
-                    .map((subcategory) => (
-                      <MenuItem key={subcategory.id} value={subcategory.id}>
-                        {subcategory.name}
-                      </MenuItem>
-                    ))}
+                  {filteredSubcategories.map((subcategory) => (
+                    <MenuItem key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
               <DialogActions>
@@ -254,6 +357,7 @@ const Products: React.FC = () => {
                 <TableCell>Enlace</TableCell>
                 <TableCell>Categoría</TableCell>
                 <TableCell>Subcategoría</TableCell>
+                <TableCell>Imagen</TableCell>
                 <TableCell align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
@@ -328,7 +432,7 @@ const Products: React.FC = () => {
                         </Select>
                       </FormControl>
                     ) : (
-                      categories.find(category => category.id === product.categoryId)?.name
+                      categories.find((category) => category.id === product.category_id)?.name
                     )}
                   </TableCell>
                   <TableCell>
@@ -343,7 +447,7 @@ const Products: React.FC = () => {
                           onChange={(e) => setEditSelectedSubcategory(e.target.value as number)}
                         >
                           {subcategories
-                            .filter((subcategory) => subcategory.categoryId === editSelectedCategory)
+                            .filter((subcategory) => subcategory.category_id === editSelectedCategory)
                             .map((subcategory) => (
                               <MenuItem key={subcategory.id} value={subcategory.id}>
                                 {subcategory.name}
@@ -352,7 +456,12 @@ const Products: React.FC = () => {
                         </Select>
                       </FormControl>
                     ) : (
-                      subcategories.find(subcategory => subcategory.id === product.subcategoryId)?.name
+                      subcategories.find((subcategory) => subcategory.id === product.subcategory_id)?.name
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {product.image_url && (
+                      <img src={product.image_url} alt={product.name} style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
                     )}
                   </TableCell>
                   <TableCell align="right">
