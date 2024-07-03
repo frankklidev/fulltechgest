@@ -145,6 +145,7 @@ const Subcategories: React.FC = () => {
           <DialogTitle>Agregar Subcategoría</DialogTitle>
           <DialogContent>
             <Box component="form" onSubmit={handleAddSubcategory} noValidate sx={{ mt: 3 }}>
+            
               <TextField
                 margin="normal"
                 required
@@ -185,6 +186,7 @@ const Subcategories: React.FC = () => {
           </DialogContent>
         </Dialog>
         <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          
           <Table sx={{ minWidth: 300 }} aria-label="simple table">
             <TableHead>
               <TableRow>

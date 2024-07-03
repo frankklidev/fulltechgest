@@ -141,14 +141,15 @@ const Products: React.FC = () => {
     setEditProductLink(product.link);
     setEditSelectedCategory(product.category_id);
     setEditSelectedSubcategory(product.subcategory_id);
+    setEditProductImage(null); // Reset the image selection when editing a product
   };
 
   const handleSaveEdit = async () => {
     setLoading(true);
     let imageUrl = '';
-    let imagePath: string | null = '';
+    let imagePath: string | null = null;
     const currentProduct = products.find(product => product.id === editProductId);
-
+  
     if (editProductImage) {
       // Eliminar la imagen anterior si existe
       if (currentProduct?.image_url) {
@@ -157,9 +158,15 @@ const Products: React.FC = () => {
       }
       // Subir la nueva imagen
       imagePath = await handleImageUpload(editProductImage);
-      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+      if (imagePath) {
+        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+      }
+    } else {
+      // Mantener la URL de la imagen actual si no se proporciona una nueva
+      imageUrl = currentProduct?.image_url || '';
     }
-
+  
+    // Asegura que los datos retornados sean seleccionados
     const { data, error } = await supabase
       .from('products')
       .update({
@@ -169,26 +176,34 @@ const Products: React.FC = () => {
         link: editProductLink,
         category_id: editSelectedCategory,
         subcategory_id: editSelectedSubcategory,
-        image_url: imageUrl || currentProduct?.image_url || '', // Asegurarse de que sea una cadena vacía si es null
+        image_url: imageUrl, // Mantener la URL de la imagen actual o la nueva si se subió una
       })
       .eq('id', editProductId)
-      .select(); // Asegura que los datos retornados sean seleccionados
-
+      .select('*');
+  
     if (error) {
       console.error('Error updating product:', error);
     } else if (data && data.length > 0) {
       setProducts(products.map((product) => (product.id === editProductId ? { ...product, ...data[0] } : product)));
-      setEditProductId(null);
-      setEditProductName('');
-      setEditProductDescription('');
-      setEditProductPrice(0);
-      setEditProductLink('');
-      setEditSelectedCategory(1);
-      setEditSelectedSubcategory(1);
-      setEditProductImage(null);
+      resetEditState();
     }
     setLoading(false);
   };
+  
+
+const resetEditState = () => {
+    setEditProductId(null);
+    setEditProductName('');
+    setEditProductDescription('');
+    setEditProductPrice(0);
+    setEditProductLink('');
+    setEditSelectedCategory(1);
+    setEditSelectedSubcategory(1);
+    setEditProductImage(null);
+};
+
+
+
 
   const handleDeleteProduct = async (id: number) => {
     setLoading(true);
@@ -363,7 +378,7 @@ const Products: React.FC = () => {
             </TableHead>
             <TableBody>
               {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} sx={{ backgroundColor: product.link ? 'inherit' : 'green' }}>
                   <TableCell>
                     {editProductId === product.id ? (
                       <TextField
@@ -462,6 +477,14 @@ const Products: React.FC = () => {
                   <TableCell>
                     {product.image_url && (
                       <img src={product.image_url} alt={product.name} style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                    )}
+                    {editProductId === product.id && (
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setEditProductImage(e.target.files ? e.target.files[0] : null)}
+                        style={{ marginTop: 16 }}
+                      />
                     )}
                   </TableCell>
                   <TableCell align="right">
