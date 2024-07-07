@@ -18,6 +18,7 @@ const Categories: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [editOpen, setEditOpen] = useState<boolean>(false); // Estado para el modal de edición
+  const [validationError, setValidationError] = useState<string>(''); // Estado para el error de validación
 
   useEffect(() => {
     fetchCategories();
@@ -37,6 +38,18 @@ const Categories: React.FC = () => {
   const handleAddCategory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+
+    // Validación para comprobar si el nombre de la categoría ya existe
+    const categoryExists = categories.some(
+      (category) => category.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (categoryExists) {
+      setValidationError('Una categoría con este nombre ya existe.');
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase
       .from('categories')
       .insert([{ name: categoryName }])
@@ -45,6 +58,7 @@ const Categories: React.FC = () => {
       console.error(error);
     } else {
       setCategoryName('');
+      setValidationError(''); // Limpiar el error de validación si la inserción fue exitosa
       fetchCategories();
     }
     setLoading(false);
@@ -128,6 +142,8 @@ const Categories: React.FC = () => {
             autoFocus
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
+            error={!!validationError}
+            helperText={validationError}
           />
           <Button
             type="submit"

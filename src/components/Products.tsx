@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
 import {
   Container,
   Box,
@@ -122,13 +122,17 @@ const Products: React.FC = () => {
   const handleImageUpload = async (file: File) => {
     const { data, error } = await supabase.storage
       .from("products")
-      .upload(`public/${file.name}`, file);
+      .upload(`public/${file.name}`, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
     if (error) {
       console.error("Error uploading image:", error);
       return null;
     }
     return data.path;
   };
+  
 
   const handleImageDelete = async (imagePath: string) => {
     const { error } = await supabase.storage
@@ -142,10 +146,24 @@ const Products: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+  
+    // Validación para comprobar si el nombre del producto ya existe
+    const productExists = products.some(
+      (product) => product.name.toLowerCase() === productName.toLowerCase()
+    );
+  
+    if (productExists) {
+      alert('Un producto con este nombre ya existe.');
+      setLoading(false);
+      return;
+    }
+  
     let imageUrl = "";
     if (productImage) {
       const imagePath = await handleImageUpload(productImage);
-      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+      if (imagePath) {
+        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
+      }
     }
     const { data, error } = await supabase
       .from("products")
@@ -177,6 +195,8 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
+  
+  
 
   const handleEditProduct = (product: Product) => {
     setEditProductId(product.id);
@@ -201,7 +221,7 @@ const Products: React.FC = () => {
     const currentProduct = products.find(
       (product) => product.id === editProductId
     );
-
+  
     if (editProductImage) {
       // Eliminar la imagen anterior si existe
       if (currentProduct?.image_url) {
@@ -214,13 +234,13 @@ const Products: React.FC = () => {
       // Subir la nueva imagen
       imagePath = await handleImageUpload(editProductImage);
       if (imagePath) {
-        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/${imagePath}`;
+        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
       }
     } else {
       // Mantener la URL de la imagen actual si no se proporciona una nueva
       imageUrl = currentProduct?.image_url || "";
     }
-
+  
     // Asegura que los datos retornados sean seleccionados
     const { data, error } = await supabase
       .from("products")
@@ -235,7 +255,7 @@ const Products: React.FC = () => {
       })
       .eq("id", editProductId)
       .select("*");
-
+  
     if (error) {
       console.error("Error updating product:", error);
     } else if (data && data.length > 0) {
@@ -249,6 +269,7 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
+  
 
   const resetEditState = () => {
     setEditProductId(null);
@@ -288,19 +309,17 @@ const Products: React.FC = () => {
   };
 
   const filteredProducts = products.filter((product) => {
+    const category = categories.find((category) => category.id === product.category_id);
+    const subcategory = subcategories.find((subcategory) => subcategory.id === product.subcategory_id);
+    
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.price.toString().includes(searchTerm.toLowerCase()) ||
       product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      categories
-        .find((category) => category.id === product.category_id)
-        ?.name.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      subcategories
-        .find((subcategory) => subcategory.id === product.subcategory_id)
-        ?.name.toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      (category && category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subcategory && subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
     const matchesFilter = filterNew ? !product.link : true;
     return matchesSearch && matchesFilter;
   });
@@ -317,7 +336,7 @@ const Products: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="lg">
-      <Backdrop open={loading} style={{ zIndex: 1300 }}>
+      <Backdrop open={loading} style={{ zIndex: 1500 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
       <Box
@@ -715,6 +734,7 @@ const Products: React.FC = () => {
             >
               Siguiente
             </Button>
+            
           </Box>
         )}
       </Box>

@@ -28,6 +28,7 @@ const Subcategories: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [open, setOpen] = useState<boolean>(false);
   const [editOpen, setEditOpen] = useState<boolean>(false); // Estado para el modal de edición
+  const [validationError, setValidationError] = useState<string>(''); // Estado para el error de validación
 
   useEffect(() => {
     fetchCategories();
@@ -53,6 +54,18 @@ const Subcategories: React.FC = () => {
   const handleAddSubcategory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+
+    // Validación para comprobar si el nombre de la subcategoría ya existe
+    const subcategoryExists = subcategories.some(
+      (subcategory) => subcategory.name.toLowerCase() === subcategoryName.toLowerCase()
+    );
+
+    if (subcategoryExists) {
+      setValidationError('Una subcategoría con este nombre ya existe.');
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase
       .from('subcategories')
       .insert([{ name: subcategoryName, category_id: selectedCategory }])
@@ -61,6 +74,7 @@ const Subcategories: React.FC = () => {
       console.error('Error adding subcategory:', error);
     } else {
       setSubcategoryName('');
+      setValidationError(''); // Limpiar el error de validación si la inserción fue exitosa
       fetchSubcategories();
       setOpen(false);
     }
@@ -156,6 +170,8 @@ const Subcategories: React.FC = () => {
                 autoFocus
                 value={subcategoryName}
                 onChange={(e) => setSubcategoryName(e.target.value)}
+                error={!!validationError}
+                helperText={validationError}
               />
               <FormControl fullWidth sx={{ mt: 2 }}>
                 <InputLabel id="select-category-label">Categoría</InputLabel>
