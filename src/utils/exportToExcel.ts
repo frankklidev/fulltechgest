@@ -14,7 +14,7 @@ interface Product {
 export const exportToExcel = (products: Product[]) => {
   // Prepara los datos y las cabeceras
   const data = [
-    ['Nombre', 'Descripción', 'Precio', 'Enlace', ],
+    ['Nombre', 'Descripción', 'Precio', 'Enlace'],
     ...products.map(product => [
       product.name,
       product.description,
@@ -26,6 +26,19 @@ export const exportToExcel = (products: Product[]) => {
   const worksheet = XLSX.utils.aoa_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
+
+  // Ajusta el ancho de las columnas
+  const wscols = [
+    { wch: 20 }, // Ancho de la columna Nombre
+    { wch: 40 }, // Ancho de la columna Descripción
+    { wch: 10 }, // Ancho de la columna Precio
+    { wch: 30 }, // Ancho de la columna Enlace
+  ];
+  worksheet['!cols'] = wscols;
+
+  // Ajusta la altura de las filas
+  const wsrows = new Array(data.length).fill({ hpx: 24 }); // Altura de todas las filas
+  worksheet['!rows'] = wsrows;
 
   // Aplica estilos
   const range = XLSX.utils.decode_range(worksheet['!ref'] || '');
