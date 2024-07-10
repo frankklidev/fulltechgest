@@ -305,8 +305,9 @@ const Products: React.FC = () => {
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+    setSearchTerm(event.target.value.toLowerCase());
   };
+  
 
   const filteredProducts = products.filter((product) => {
     const category = categories.find(
@@ -321,23 +322,21 @@ const Products: React.FC = () => {
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.price.toString().includes(searchTerm.toLowerCase()) ||
       product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (category &&
-        category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (subcategory &&
-        subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (category && category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subcategory && subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesFilter = filterNew ? !product.link : true;
     return matchesSearch && matchesFilter;
-  });
+});
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
   const sortedProducts = [...filteredProducts].sort((a, b) =>
-  a.name.localeCompare(b.name)
-);
-const paginatedProducts = sortedProducts.slice(
+    a.name.localeCompare(b.name)
+  );
+  const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -354,8 +353,13 @@ const paginatedProducts = sortedProducts.slice(
     setProductName(event.target.value);
   };
 
-  const filterOptions = (options: { label: string, id: number }[], state: any) => {
-    return options.filter(option => option.label.toLowerCase().includes(state.inputValue.toLowerCase()));
+  const filterOptions = (
+    options: { label: string; id: number }[],
+    state: any
+  ) => {
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(state.inputValue.toLowerCase())
+    );
   };
 
   return (
@@ -435,30 +439,32 @@ const paginatedProducts = sortedProducts.slice(
               sx={{ mt: 3 }}
             >
               <Autocomplete
-      disablePortal
-      id="product-name-autocomplete"
-      options={transformProducts(products)}
-      getOptionLabel={(option) => option.label}
-      filterOptions={filterOptions}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          margin="normal"
-          required
-          fullWidth
-          id="productName"
-          label="Nombre del Producto"
-          name="productName"
-          autoComplete="off"
-          autoFocus
-          value={productName}
-          onChange={handleInputChange}
-        />
-      )}
-      onChange={(_event, value) =>
-        setProductName(value ? value.label : "")
-      }
-    />
+                disablePortal
+                freeSolo
+                id="product-name-autocomplete"
+                options={transformProducts(products)}
+                getOptionLabel={(option) =>
+                  typeof option === "string" ? option : option.label
+                }
+                filterOptions={filterOptions}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="productName"
+                    label="Nombre del Producto"
+                    name="productName"
+                    autoComplete="off"
+                    autoFocus
+                    value={productName}
+                    onChange={handleInputChange}
+                  />
+                )}
+                onInputChange={(_event, value) => setProductName(value)}
+              />
+
               <TextField
                 margin="normal"
                 required
