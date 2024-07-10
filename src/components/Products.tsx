@@ -55,6 +55,8 @@ interface Product {
   category_id: number;
   subcategory_id: number;
   image_url?: string;
+  isedited: boolean;
+  isdeleted: boolean;
 }
 
 const Products: React.FC = () => {
@@ -89,6 +91,8 @@ const Products: React.FC = () => {
   const itemsPerPage = 5;
   const [filterNew, setFilterNew] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(true); // Estado para el indicador de carga
+  const [editProductIsEdited, setEditProductIsEdited] =
+    useState<boolean>(false);
 
   useEffect(() => {
     fetchCategories();
@@ -179,6 +183,8 @@ const Products: React.FC = () => {
           category_id: selectedCategory,
           subcategory_id: selectedSubcategory,
           image_url: imageUrl,
+          isedited: editProductIsEdited,
+          isdeleted: false,
         },
       ])
       .select("*");
@@ -194,11 +200,11 @@ const Products: React.FC = () => {
       setSelectedCategory(1);
       setSelectedSubcategory(1);
       setProductImage(null);
-      setOpen(false);
+      setOpen(false)
+      setEditProductIsEdited(false)
     }
     setLoading(false);
   };
-
   const handleEditProduct = (product: Product) => {
     setEditProductId(product.id);
     setEditProductName(product.name);
@@ -222,9 +228,8 @@ const Products: React.FC = () => {
     const currentProduct = products.find(
       (product) => product.id === editProductId
     );
-
+  
     if (editProductImage) {
-      // Eliminar la imagen anterior si existe
       if (currentProduct?.image_url) {
         const previousImagePath = currentProduct.image_url
           .split("/")
@@ -232,17 +237,14 @@ const Products: React.FC = () => {
           .join("/");
         await handleImageDelete(previousImagePath);
       }
-      // Subir la nueva imagen
       imagePath = await handleImageUpload(editProductImage);
       if (imagePath) {
         imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
       }
     } else {
-      // Mantener la URL de la imagen actual si no se proporciona una nueva
       imageUrl = currentProduct?.image_url || "";
     }
-
-    // Asegura que los datos retornados sean seleccionados
+  
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -252,11 +254,12 @@ const Products: React.FC = () => {
         link: editProductLink,
         category_id: editSelectedCategory,
         subcategory_id: editSelectedSubcategory,
-        image_url: imageUrl, // Mantener la URL de la imagen actual o la nueva si se subió una
+        image_url: imageUrl,
+        isedited: editProductIsEdited,
       })
       .eq("id", editProductId)
       .select("*");
-
+  
     if (error) {
       console.error("Error updating product:", error);
     } else if (data && data.length > 0) {
@@ -270,6 +273,7 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
+  
 
   const resetEditState = () => {
     setEditProductId(null);
@@ -286,13 +290,36 @@ const Products: React.FC = () => {
   const handleDeleteProduct = async (id: number) => {
     setLoading(true);
     const productToDelete = products.find((product) => product.id === id);
-    if (productToDelete?.image_url) {
-      const imagePath = productToDelete.image_url.split("/").slice(4).join("/");
-      await handleImageDelete(imagePath);
+
+    if (productToDelete) {
+      // Si hay una imagen, puedes decidir si deseas eliminarla físicamente o no.
+      // Aquí mantengo la eliminación física de la imagen, pero puedes eliminar este bloque si no es necesario.
+      if (productToDelete.image_url) {
+        const imagePath = productToDelete.image_url
+          .split("/")
+          .slice(4)
+          .join("/");
+        await handleImageDelete(imagePath);
+      }
+
+      // Actualiza el campo isDeleted en lugar de eliminar el producto
+      const { error } = await supabase
+        .from("products")
+        .update({ isdeleted: true })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting product:", error);
+      } else {
+        // Actualiza el estado local de los productos
+        setProducts(
+          products.map((product) =>
+            product.id === id ? { ...product, isdeleted: true } : product
+          )
+        );
+      }
     }
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) console.error("Error deleting product:", error);
-    else setProducts(products.filter((product) => product.id !== id));
+
     setLoading(false);
   };
 
@@ -307,7 +334,6 @@ const Products: React.FC = () => {
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
-  
 
   const filteredProducts = products.filter((product) => {
     const category = categories.find(
@@ -322,12 +348,17 @@ const Products: React.FC = () => {
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.price.toString().includes(searchTerm.toLowerCase()) ||
       product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (category && category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (subcategory && subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (category &&
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (subcategory &&
+        subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesFilter = filterNew ? !product.link : true;
-    return matchesSearch && matchesFilter;
-});
+    const matchesFilter = filterNew
+      ? !product.link || product.isdeleted || product.isedited
+      : true;
+
+    return matchesSearch && matchesFilter && (!product.isdeleted || filterNew);
+  });
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -396,7 +427,7 @@ const Products: React.FC = () => {
                 onChange={() => setFilterNew(!filterNew)}
               />
             }
-            label="Filtrar nuevos productos"
+            label="Filtrar modificaciones"
           />
 
           <Button
@@ -589,7 +620,15 @@ const Products: React.FC = () => {
                 {paginatedProducts.map((product) => (
                   <TableRow
                     key={product.id}
-                    sx={{ backgroundColor: product.link ? "inherit" : "green" }}
+                    sx={{
+                      backgroundColor: product.isdeleted
+                        ? "red"
+                        : product.isedited
+                        ? "yellow"
+                        : product.link
+                        ? "inherit"
+                        : "green",
+                    }}
                   >
                     <TableCell>
                       {editProductId === product.id ? (
@@ -917,7 +956,17 @@ const Products: React.FC = () => {
                   ))}
               </Select>
             </FormControl>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editProductIsEdited}
+                  onChange={(e) => setEditProductIsEdited(e.target.checked)}
+                />
+              }
+              label="Editado"
+            />
           </Box>
+
           <DialogActions>
             <Button
               variant="contained"
