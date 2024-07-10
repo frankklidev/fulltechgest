@@ -25,6 +25,7 @@ import {
   Modal,
   FormControlLabel,
   Switch,
+  Autocomplete,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -320,7 +321,8 @@ const Products: React.FC = () => {
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.price.toString().includes(searchTerm.toLowerCase()) ||
       product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (category && category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (category &&
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (subcategory &&
         subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -332,11 +334,29 @@ const Products: React.FC = () => {
     setCurrentPage(newPage);
   };
 
-  const paginatedProducts = filteredProducts.slice(
+  const sortedProducts = [...filteredProducts].sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
+const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const transformProducts = (products: Product[]) => {
+    return products.map((product) => ({
+      label: product.name,
+      id: product.id,
+    }));
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setProductName(event.target.value);
+  };
+
+  const filterOptions = (options: { label: string, id: number }[], state: any) => {
+    return options.filter(option => option.label.toLowerCase().includes(state.inputValue.toLowerCase()));
+  };
 
   return (
     <Container component="main" maxWidth="lg">
@@ -414,18 +434,31 @@ const Products: React.FC = () => {
               noValidate
               sx={{ mt: 3 }}
             >
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="productName"
-                label="Nombre del Producto"
-                name="productName"
-                autoComplete="off"
-                autoFocus
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-              />
+              <Autocomplete
+      disablePortal
+      id="product-name-autocomplete"
+      options={transformProducts(products)}
+      getOptionLabel={(option) => option.label}
+      filterOptions={filterOptions}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          margin="normal"
+          required
+          fullWidth
+          id="productName"
+          label="Nombre del Producto"
+          name="productName"
+          autoComplete="off"
+          autoFocus
+          value={productName}
+          onChange={handleInputChange}
+        />
+      )}
+      onChange={(_event, value) =>
+        setProductName(value ? value.label : "")
+      }
+    />
               <TextField
                 margin="normal"
                 required
