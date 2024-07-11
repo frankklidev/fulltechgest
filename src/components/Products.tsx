@@ -183,7 +183,7 @@ const Products: React.FC = () => {
           category_id: selectedCategory,
           subcategory_id: selectedSubcategory,
           image_url: imageUrl,
-          isedited: editProductIsEdited,
+          isedited: false,
           isdeleted: false,
         },
       ])
@@ -200,25 +200,10 @@ const Products: React.FC = () => {
       setSelectedCategory(1);
       setSelectedSubcategory(1);
       setProductImage(null);
-      setOpen(false)
-      setEditProductIsEdited(false)
+      setOpen(false);
+      setEditProductIsEdited(false);
     }
     setLoading(false);
-  };
-  const handleEditProduct = (product: Product) => {
-    setEditProductId(product.id);
-    setEditProductName(product.name);
-    setEditProductDescription(product.description);
-    setEditProductPrice(product.price);
-    setEditProductLink(product.link);
-    setEditSelectedCategory(product.category_id);
-    setEditSelectedSubcategory(product.subcategory_id);
-    setEditProductImage(null); // Reset the image selection when editing a product
-    setModalOpen(true);
-  };
-
-  const handleExport = () => {
-    exportToExcel(products);
   };
 
   const handleSaveEdit = async () => {
@@ -228,7 +213,7 @@ const Products: React.FC = () => {
     const currentProduct = products.find(
       (product) => product.id === editProductId
     );
-  
+
     if (editProductImage) {
       if (currentProduct?.image_url) {
         const previousImagePath = currentProduct.image_url
@@ -244,7 +229,7 @@ const Products: React.FC = () => {
     } else {
       imageUrl = currentProduct?.image_url || "";
     }
-  
+
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -255,11 +240,11 @@ const Products: React.FC = () => {
         category_id: editSelectedCategory,
         subcategory_id: editSelectedSubcategory,
         image_url: imageUrl,
-        isedited: editProductIsEdited,
+        isedited: editProductIsEdited, // Se actualiza el valor de isedited según el estado del interruptor
       })
       .eq("id", editProductId)
       .select("*");
-  
+
     if (error) {
       console.error("Error updating product:", error);
     } else if (data && data.length > 0) {
@@ -273,7 +258,23 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
-  
+
+  const handleEditProduct = (product: Product) => {
+    setEditProductId(product.id);
+    setEditProductName(product.name);
+    setEditProductDescription(product.description);
+    setEditProductPrice(product.price);
+    setEditProductLink(product.link);
+    setEditSelectedCategory(product.category_id);
+    setEditSelectedSubcategory(product.subcategory_id);
+    setEditProductImage(null); // Reset the image selection when editing a product
+    setEditProductIsEdited(product.isedited || true); // Set the initial state of the checkbox
+    setModalOpen(true);
+  };
+
+  const handleExport = () => {
+    exportToExcel(products);
+  };
 
   const resetEditState = () => {
     setEditProductId(null);
@@ -284,6 +285,7 @@ const Products: React.FC = () => {
     setEditSelectedCategory(1);
     setEditSelectedSubcategory(1);
     setEditProductImage(null);
+    setEditProductIsEdited(false);
     setModalOpen(false);
   };
 
@@ -625,9 +627,9 @@ const Products: React.FC = () => {
                         ? "red"
                         : product.isedited
                         ? "yellow"
-                        : product.link
-                        ? "inherit"
-                        : "green",
+                        : !product.link
+                        ? "green"
+                        : "inherit",
                     }}
                   >
                     <TableCell>
@@ -956,15 +958,17 @@ const Products: React.FC = () => {
                   ))}
               </Select>
             </FormControl>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editProductIsEdited}
-                  onChange={(e) => setEditProductIsEdited(e.target.checked)}
-                />
-              }
-              label="Editado"
-            />
+            {editProductId !== null && editProductIsEdited && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editProductIsEdited}
+                    onChange={(e) => setEditProductIsEdited(e.target.checked)}
+                  />
+                }
+                label="Editado"
+              />
+            )}
           </Box>
 
           <DialogActions>
