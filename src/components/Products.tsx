@@ -34,6 +34,8 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
 import { exportToExcel } from "../utils/exportToExcel";
+import RestoreIcon from '@mui/icons-material/Restore';
+
 
 interface Category {
   id: number;
@@ -260,6 +262,9 @@ const Products: React.FC = () => {
   };
 
   const handleEditProduct = (product: Product) => {
+    if (product.isdeleted) {
+      return; // No permitir la edición si el producto está eliminado
+    }
     setEditProductId(product.id);
     setEditProductName(product.name);
     setEditProductDescription(product.description);
@@ -271,6 +276,7 @@ const Products: React.FC = () => {
     setEditProductIsEdited(product.isedited || true); // Set the initial state of the checkbox
     setModalOpen(true);
   };
+  
 
   const handleExport = () => {
     exportToExcel(products);
@@ -630,6 +636,7 @@ const Products: React.FC = () => {
             value={editProductName}
             onChange={(e) => setEditProductName(e.target.value)}
             margin="normal"
+            disabled={product.isdeleted}
           />
         ) : (
           product.name
@@ -642,6 +649,7 @@ const Products: React.FC = () => {
             value={editProductDescription}
             onChange={(e) => setEditProductDescription(e.target.value)}
             margin="normal"
+            disabled={product.isdeleted}
           />
         ) : (
           product.description
@@ -655,6 +663,7 @@ const Products: React.FC = () => {
             value={editProductPrice}
             onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
             margin="normal"
+            disabled={product.isdeleted}
           />
         ) : (
           product.price
@@ -667,6 +676,7 @@ const Products: React.FC = () => {
             value={editProductLink}
             onChange={(e) => setEditProductLink(e.target.value)}
             margin="normal"
+            disabled={product.isdeleted}
           />
         ) : (
           <a href={product.link} target="_blank" rel="noopener noreferrer">
@@ -684,6 +694,7 @@ const Products: React.FC = () => {
               value={editSelectedCategory}
               label="Categoría"
               onChange={(e) => setEditSelectedCategory(e.target.value as number)}
+              disabled={product.isdeleted}
             >
               {categories.map((category) => (
                 <MenuItem key={category.id} value={category.id}>
@@ -706,6 +717,7 @@ const Products: React.FC = () => {
               value={editSelectedSubcategory}
               label="Subcategoría"
               onChange={(e) => setEditSelectedSubcategory(e.target.value as number)}
+              disabled={product.isdeleted}
             >
               {subcategories
                 .filter((subcategory) => subcategory.category_id === editSelectedCategory)
@@ -740,33 +752,58 @@ const Products: React.FC = () => {
               setEditProductImage(e.target.files ? e.target.files[0] : null)
             }
             style={{ marginTop: 16 }}
+            disabled={product.isdeleted}
           />
         )}
       </TableCell>
       <TableCell align="right">
         {editProductId === product.id ? (
           <>
-            <IconButton onClick={handleSaveEdit} color="primary">
+            <IconButton onClick={handleSaveEdit} color="primary" disabled={product.isdeleted}>
               <SaveIcon />
             </IconButton>
-            <IconButton onClick={resetEditState} color="secondary">
+            <IconButton onClick={resetEditState} color="secondary" disabled={product.isdeleted}>
               <CancelIcon />
             </IconButton>
           </>
         ) : (
           <>
-            <IconButton onClick={() => handleEditProduct(product)} color="primary">
+            <IconButton onClick={() => handleEditProduct(product)} sx={{ color: 'black' }} disabled={product.isdeleted}>
               <EditIcon />
             </IconButton>
-            <IconButton onClick={() => handleDeleteProduct(product.id)} sx={{ color: "red" }}>
-              <DeleteIcon />
+            <IconButton onClick={() => handleDeleteProduct(product.id)} sx={{ color: 'black' }}>
+              {product.isdeleted ? <RestoreIcon /> : <DeleteIcon />}
             </IconButton>
           </>
+        )}
+        {product.isdeleted && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={product.isdeleted}
+                onChange={async (e) => {
+                  const updatedProduct = { ...product, isdeleted: e.target.checked };
+                  const { error } = await supabase
+                    .from("products")
+                    .update({ isdeleted: e.target.checked })
+                    .eq("id", product.id);
+                  if (error) {
+                    console.error("Error updating product:", error);
+                  } else {
+                    setProducts(products.map((p) => (p.id === product.id ? updatedProduct : p)));
+                  }
+                }}
+              />
+            }
+            label="Eliminado"
+          />
         )}
       </TableCell>
     </TableRow>
   ))}
 </TableBody>
+
+
 
             </Table>
           </TableContainer>
@@ -911,31 +948,33 @@ const Products: React.FC = () => {
           label="Editado"
         />
       )}
-      {editProductId !== null && (
-        <FormControlLabel
-          control={
-            <Switch
-              checked={products.find((p) => p.id === editProductId)?.isdeleted || false}
-              onChange={async (e) => {
-                const updatedProduct = products.find((p) => p.id === editProductId);
-                if (updatedProduct) {
-                  updatedProduct.isdeleted = e.target.checked;
-                  const { error } = await supabase
-                    .from("products")
-                    .update({ isdeleted: e.target.checked })
-                    .eq("id", editProductId);
-                  if (error) {
-                    console.error("Error updating product:", error);
-                  } else {
-                    setProducts(products.map((p) => (p.id === editProductId ? updatedProduct : p)));
-                  }
-                }
-              }}
-            />
+{editProductId !== null && (
+  <FormControlLabel
+    control={
+      <Switch
+        checked={products.find((p) => p.id === editProductId)?.isdeleted || false}
+        onChange={async (e) => {
+          const updatedProduct = products.find((p) => p.id === editProductId);
+          if (updatedProduct) {
+            updatedProduct.isdeleted = e.target.checked;
+            const { error } = await supabase
+              .from("products")
+              .update({ isdeleted: e.target.checked })
+              .eq("id", editProductId);
+            if (error) {
+              console.error("Error updating product:", error);
+            } else {
+              setProducts(products.map((p) => (p.id === editProductId ? updatedProduct : p)));
+            }
           }
-          label="Eliminado"
-        />
-      )}
+        }}
+        disabled={editProductId !== null && products.find((p) => p.id === editProductId)?.isdeleted}
+      />
+    }
+    label="Eliminado"
+  />
+)}
+
     </Box>
 
     <DialogActions>
