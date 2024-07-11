@@ -826,7 +826,7 @@ const Products: React.FC = () => {
                           </IconButton>
                         </>
                       )}
-                      {product.isdeleted && (
+                      {product.isdeleted && editProductId === null && (
                         <FormControlLabel
                           control={
                             <Switch
@@ -1003,55 +1003,54 @@ const Products: React.FC = () => {
                   ))}
               </Select>
             </FormControl>
-            {editProductIsEdited && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={editProductIsEdited}
-                    onChange={(e) => setEditProductIsEdited(e.target.checked)}
-                  />
-                }
-                label="Editado"
-              />
-            )}
-            {editProductId !== null && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={
-                      products.find((p) => p.id === editProductId)?.isdeleted ||
-                      false
-                    }
-                    onChange={async (e) => {
-                      const updatedProduct = products.find(
-                        (p) => p.id === editProductId
-                      );
-                      if (updatedProduct) {
-                        updatedProduct.isdeleted = e.target.checked;
-                        const { error } = await supabase
-                          .from("products")
-                          .update({ isdeleted: e.target.checked })
-                          .eq("id", editProductId);
-                        if (error) {
-                          console.error("Error updating product:", error);
-                        } else {
-                          setProducts(
-                            products.map((p) =>
-                              p.id === editProductId ? updatedProduct : p
-                            )
-                          );
-                        }
+            {editProductId !== null &&
+              products.find((p) => p.id === editProductId)?.isedited && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editProductIsEdited}
+                      onChange={(e) => setEditProductIsEdited(e.target.checked)}
+                    />
+                  }
+                  label="Editado"
+                />
+              )}
+
+            {editProductId !== null &&
+              products.find((p) => p.id === editProductId)?.isdeleted && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={
+                        products.find((p) => p.id === editProductId)
+                          ?.isdeleted || false
                       }
-                    }}
-                    disabled={
-                      editProductId !== null &&
-                      products.find((p) => p.id === editProductId)?.isdeleted
-                    }
-                  />
-                }
-                label="Eliminado"
-              />
-            )}
+                      onChange={async (e) => {
+                        const updatedProduct = products.find(
+                          (p) => p.id === editProductId
+                        );
+                        if (updatedProduct) {
+                          updatedProduct.isdeleted = e.target.checked;
+                          const { error } = await supabase
+                            .from("products")
+                            .update({ isdeleted: e.target.checked })
+                            .eq("id", editProductId);
+                          if (error) {
+                            console.error("Error updating product:", error);
+                          } else {
+                            setProducts(
+                              products.map((p) =>
+                                p.id === editProductId ? updatedProduct : p
+                              )
+                            );
+                          }
+                        }
+                      }}
+                    />
+                  }
+                  label="Eliminado"
+                />
+              )}
           </Box>
 
           <DialogActions>
