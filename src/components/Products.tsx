@@ -89,7 +89,7 @@ const Products: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const [filterNew, setFilterNew] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(true); // Estado para el indicador de carga
   const [editProductIsEdited, setEditProductIsEdited] =
