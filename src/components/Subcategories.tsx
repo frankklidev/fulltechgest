@@ -1,5 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, CircularProgress, Backdrop, TablePagination, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  CircularProgress,
+  Backdrop,
+  TablePagination,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { supabase } from '../supabaseClient';
@@ -27,8 +52,8 @@ const Subcategories: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [open, setOpen] = useState<boolean>(false);
-  const [editOpen, setEditOpen] = useState<boolean>(false); // Estado para el modal de edición
-  const [validationError, setValidationError] = useState<string>(''); // Estado para el error de validación
+  const [editOpen, setEditOpen] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>('');
 
   useEffect(() => {
     fetchCategories();
@@ -45,7 +70,7 @@ const Subcategories: React.FC = () => {
 
   const fetchSubcategories = async () => {
     setLoading(true);
-    let { data, error } = await supabase.from('subcategories').select('*');
+    const { data, error } = await supabase.from('subcategories').select('*');
     if (error) console.error('Error fetching subcategories:', error);
     else setSubcategories(data || []);
     setLoading(false);
@@ -55,7 +80,6 @@ const Subcategories: React.FC = () => {
     event.preventDefault();
     setLoading(true);
 
-    // Validación para comprobar si el nombre de la subcategoría ya existe
     const subcategoryExists = subcategories.some(
       (subcategory) => subcategory.name.toLowerCase() === subcategoryName.toLowerCase()
     );
@@ -74,7 +98,7 @@ const Subcategories: React.FC = () => {
       console.error('Error adding subcategory:', error);
     } else {
       setSubcategoryName('');
-      setValidationError(''); // Limpiar el error de validación si la inserción fue exitosa
+      setValidationError('');
       fetchSubcategories();
       setOpen(false);
     }
@@ -85,7 +109,7 @@ const Subcategories: React.FC = () => {
     setEditSubcategoryId(id);
     setEditSubcategoryName(name);
     setEditSelectedCategory(categoryId);
-    setEditOpen(true); // Abrir el modal de edición
+    setEditOpen(true);
   };
 
   const handleSaveEdit = async () => {
@@ -100,7 +124,7 @@ const Subcategories: React.FC = () => {
       setEditSubcategoryId(null);
       setEditSubcategoryName('');
       fetchSubcategories();
-      setEditOpen(false); // Cerrar el modal de edición
+      setEditOpen(false);
     }
     setLoading(false);
   };
@@ -138,20 +162,45 @@ const Subcategories: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="md">
-      <Backdrop open={loading} style={{ zIndex: 1400 }}>
+    <Container component="main" maxWidth="lg" sx={{ mt: 4 }}>
+      <Backdrop open={loading} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
       <Box
         sx={{
-          marginTop: 8,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          width: '100%',
         }}
       >
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClickOpen}
+            sx={{
+              width: "200px",
+              marginLeft: 1,
+              backgroundColor: "#1976d2",
+              color: "white",
+              fontWeight: "bold",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+              "&:hover": {
+                backgroundColor: "#115293",
+                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+              },
+              "&:active": {
+                backgroundColor: "#0d3a6a",
+              },
+              "&:focus": {
+                outline: "none",
+                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+              },
+            }}
+          >
             Agregar Subcategoría
           </Button>
         </Box>
@@ -172,8 +221,9 @@ const Subcategories: React.FC = () => {
                 onChange={(e) => setSubcategoryName(e.target.value)}
                 error={!!validationError}
                 helperText={validationError}
+                sx={{ mb: 2 }}
               />
-              <FormControl fullWidth sx={{ mt: 2 }}>
+              <FormControl fullWidth sx={{ mb: 3 }}>
                 <InputLabel id="select-category-label">Categoría</InputLabel>
                 <Select
                   labelId="select-category-label"
@@ -190,10 +240,37 @@ const Subcategories: React.FC = () => {
                 </Select>
               </FormControl>
               <DialogActions>
-                <Button onClick={handleClose} color="secondary">
+                <Button
+                  onClick={handleClose}
+                  color="secondary"
+                  sx={{
+                    color: 'white',
+                    backgroundColor: 'secondary.main',
+                    '&:hover': {
+                      backgroundColor: 'secondary.dark',
+                    },
+                    '&:active': {
+                      backgroundColor: 'secondary.darker',
+                    },
+                  }}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    color: 'white',
+                    backgroundColor: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
+                    '&:active': {
+                      backgroundColor: 'primary.darker',
+                    },
+                  }}
+                >
                   Agregar
                 </Button>
               </DialogActions>
@@ -201,7 +278,6 @@ const Subcategories: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de edición */}
         <Dialog open={editOpen} onClose={handleEditClose}>
           <DialogTitle>Editar Subcategoría</DialogTitle>
           <DialogContent>
@@ -216,8 +292,9 @@ const Subcategories: React.FC = () => {
                 autoComplete="off"
                 value={editSubcategoryName}
                 onChange={(e) => setEditSubcategoryName(e.target.value)}
+                sx={{ mb: 2 }}
               />
-              <FormControl fullWidth sx={{ mt: 2 }}>
+              <FormControl fullWidth sx={{ mb: 3 }}>
                 <InputLabel id="edit-select-category-label">Categoría</InputLabel>
                 <Select
                   labelId="edit-select-category-label"
@@ -234,10 +311,37 @@ const Subcategories: React.FC = () => {
                 </Select>
               </FormControl>
               <DialogActions>
-                <Button onClick={handleEditClose} color="secondary">
+                <Button
+                  onClick={handleEditClose}
+                  color="secondary"
+                  sx={{
+                    color: 'white',
+                    backgroundColor: 'secondary.main',
+                    '&:hover': {
+                      backgroundColor: 'secondary.dark',
+                    },
+                    '&:active': {
+                      backgroundColor: 'secondary.darker',
+                    },
+                  }}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    color: 'white',
+                    backgroundColor: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
+                    '&:active': {
+                      backgroundColor: 'primary.darker',
+                    },
+                  }}
+                >
                   Guardar
                 </Button>
               </DialogActions>
@@ -245,13 +349,13 @@ const Subcategories: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
           <Table sx={{ minWidth: 300 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: '45%', padding: '8px' }}>Nombre</TableCell>
-                <TableCell sx={{ width: '35%', padding: '8px' }}>Categoría</TableCell>
-                <TableCell sx={{ width: '20%', padding: '8px' }} align="right">Acciones</TableCell>
+                <TableCell sx={{ width: '45%', padding: '8px', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Nombre</TableCell>
+                <TableCell sx={{ width: '35%', padding: '8px', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Categoría</TableCell>
+                <TableCell sx={{ width: '20%', padding: '8px', fontWeight: 'bold', backgroundColor: '#f5f5f5' }} align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

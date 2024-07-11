@@ -426,15 +426,65 @@ const Products: React.FC = () => {
             variant="outlined"
             value={searchTerm}
             onChange={handleSearchChange}
+            placeholder="Buscar productos..."
+            sx={{
+              width: "100%",
+              maxWidth: 400,
+              marginBottom: 2,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(0, 0, 0, .1)",
+                "& fieldset": {
+                  borderColor: "#1976d2",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#115293",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#0d3a6a",
+                },
+              },
+              "& .MuiInputLabel-outlined": {
+                color: "#1976d2",
+                fontWeight: "bold",
+              },
+              "& .MuiInputLabel-outlined.Mui-focused": {
+                color: "#0d3a6a",
+              },
+              "& .MuiOutlinedInput-input": {
+                padding: "10px 14px",
+              },
+            }}
           />
+
           <FormControlLabel
             control={
               <Switch
                 checked={filterNew}
                 onChange={() => setFilterNew(!filterNew)}
+                sx={{
+                  "& .MuiSwitch-switchBase": {
+                    color: "green",
+                    "&.Mui-checked": {
+                      color: "darkgreen",
+                    },
+                    "&.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: "darkgreen",
+                    },
+                  },
+                  "& .MuiSwitch-track": {
+                    backgroundColor: "lightgray",
+                  },
+                }}
               />
             }
             label="Filtrar modificaciones"
+            sx={{
+              "& .MuiFormControlLabel-label": {
+                fontWeight: "bold",
+                color: "darkgreen",
+              },
+            }}
           />
 
           <Button
@@ -442,16 +492,22 @@ const Products: React.FC = () => {
             onClick={handleExport}
             sx={{
               marginLeft: 1,
-              color: "white",
               backgroundColor: "green",
+              color: "white",
+              fontWeight: "bold",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0 3px 5px 2px rgba(0, 128, 0, .3)",
               "&:hover": {
-                backgroundColor: "darkgreen", // Color cuando el botón está en hover
+                backgroundColor: "darkgreen",
+                boxShadow: "0 6px 10px 4px rgba(0, 128, 0, .3)",
               },
               "&:active": {
-                backgroundColor: "darkgreen", // Color cuando el botón está activo
+                backgroundColor: "forestgreen",
               },
               "&:focus": {
-                backgroundColor: "darkgreen", // Color cuando el botón está en foco
+                outline: "none",
+                boxShadow: "0 0 0 4px rgba(0, 128, 0, .5)",
               },
             }}
           >
@@ -462,7 +518,27 @@ const Products: React.FC = () => {
             variant="contained"
             color="primary"
             onClick={handleClickOpen}
-            sx={{ width: "200px", marginLeft: 1 }}
+            sx={{
+              width: "200px",
+              marginLeft: 1,
+              backgroundColor: "#1976d2",
+              color: "white",
+              fontWeight: "bold",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+              "&:hover": {
+                backgroundColor: "#115293",
+                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+              },
+              "&:active": {
+                backgroundColor: "#0d3a6a",
+              },
+              "&:focus": {
+                outline: "none",
+                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+              },
+            }}
           >
             Agregar Producto
           </Button>
@@ -584,10 +660,53 @@ const Products: React.FC = () => {
                 </Select>
               </FormControl>
               <DialogActions>
-                <Button onClick={handleClose} color="secondary">
+                <Button
+                  onClick={handleClose}
+                  sx={{
+                    backgroundColor: "red",
+                    color: "white",
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    borderRadius: "8px",
+                    boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
+                    "&:hover": {
+                      backgroundColor: "darkred",
+                      boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
+                    },
+                    "&:active": {
+                      backgroundColor: "firebrick",
+                    },
+                    "&:focus": {
+                      outline: "none",
+                      boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                    },
+                  }}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    borderRadius: "8px",
+                    boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+                    "&:hover": {
+                      backgroundColor: "#115293",
+                      boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                    },
+                    "&:active": {
+                      backgroundColor: "#0d3a6a",
+                    },
+                    "&:focus": {
+                      outline: "none",
+                      boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                    },
+                  }}
+                >
                   Agregar
                 </Button>
               </DialogActions>
@@ -1170,6 +1289,25 @@ const Products: React.FC = () => {
               color="primary"
               onClick={handleSaveEdit}
               startIcon={<SaveIcon />}
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+                "&:hover": {
+                  backgroundColor: "#115293",
+                  boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                },
+                "&:active": {
+                  backgroundColor: "#0d3a6a",
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                },
+              }}
             >
               Guardar
             </Button>
@@ -1178,6 +1316,25 @@ const Products: React.FC = () => {
               color="secondary"
               onClick={resetEditState}
               startIcon={<CancelIcon />}
+              sx={{
+                backgroundColor: "red",
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
+                "&:hover": {
+                  backgroundColor: "darkred",
+                  boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
+                },
+                "&:active": {
+                  backgroundColor: "firebrick",
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                },
+              }}
             >
               Cancelar
             </Button>

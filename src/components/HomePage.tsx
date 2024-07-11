@@ -13,9 +13,9 @@ const HomePage: React.FC = () => {
     <Container component="main" maxWidth="lg" sx={{ marginTop: 4 }}>
       <Grid container spacing={4}>
         <Grid item xs={12} sm={4}>
-          <Card>
+          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
             <CardContent>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Categorías
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -23,16 +23,22 @@ const HomePage: React.FC = () => {
               </Typography>
             </CardContent>
             <CardActions>
-              <Button size="small" onClick={() => handleNavigate('/categories')}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/categories')}
+                sx={{ marginLeft: 'auto' }}
+              >
                 Ir a Categorías
               </Button>
             </CardActions>
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card>
+          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
             <CardContent>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Subcategorías
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -40,16 +46,22 @@ const HomePage: React.FC = () => {
               </Typography>
             </CardContent>
             <CardActions>
-              <Button size="small" onClick={() => handleNavigate('/subcategories')}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/subcategories')}
+                sx={{ marginLeft: 'auto' }}
+              >
                 Ir a Subcategorías
               </Button>
             </CardActions>
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card>
+          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
             <CardContent>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Productos
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -57,7 +69,13 @@ const HomePage: React.FC = () => {
               </Typography>
             </CardContent>
             <CardActions>
-              <Button size="small" onClick={() => handleNavigate('/products')}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/products')}
+                sx={{ marginLeft: 'auto' }}
+              >
                 Ir a Productos
               </Button>
             </CardActions>

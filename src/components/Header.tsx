@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import React, { useContext, useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Divider } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
@@ -32,24 +31,41 @@ const Header: React.FC = () => {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
       <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
           Gestion Fulltech
         </Typography>
         {isAuthenticated ? (
           <>
-            <Box sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
-              <Button color="inherit" onClick={() => navigate('/')}>
-                <HomeIcon />
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, flexGrow: 1 }}>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/')}
+                startIcon={<HomeIcon />}
+                sx={{ marginRight: 2, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
+                Home
               </Button>
-              <Button color="inherit" onClick={() => navigate('/products')}>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/products')}
+                sx={{ marginRight: 2, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
                 Productos
               </Button>
-              <Button color="inherit" onClick={() => navigate('/categories')}>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/categories')}
+                sx={{ marginRight: 2, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
                 Categorías
               </Button>
-              <Button color="inherit" onClick={() => navigate('/subcategories')}>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/subcategories')}
+                sx={{ fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
                 Subcategorías
               </Button>
             </Box>
@@ -63,7 +79,7 @@ const Header: React.FC = () => {
                 onClose={handleMenuClose}
               >
                 <MenuItem onClick={() => handleNavigation('/')}>
-                  <HomeIcon />
+                  <HomeIcon sx={{ marginRight: 1 }} />
                   Home
                 </MenuItem>
                 <MenuItem onClick={() => handleNavigation('/products')}>Productos</MenuItem>
@@ -71,17 +87,26 @@ const Header: React.FC = () => {
                 <MenuItem onClick={() => handleNavigation('/subcategories')}>Subcategorías</MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-                  <LogoutIcon />
+                  <LogoutIcon sx={{ marginRight: 1 }} />
                   Cerrar sesión
                 </MenuItem>
               </Menu>
             </Box>
-            <Button color="inherit" onClick={handleLogout} sx={{ display: { xs: 'none', md: 'block' } }}>
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+              sx={{ display: { xs: 'none', md: 'flex' }, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+            >
               Cerrar sesión
             </Button>
           </>
         ) : (
-          <Button color="inherit" onClick={() => navigate('/login')}>
+          <Button
+            color="inherit"
+            onClick={() => navigate('/login')}
+            sx={{ fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+          >
             Iniciar sesión
           </Button>
         )}

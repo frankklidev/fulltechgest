@@ -71,7 +71,37 @@ const Login: React.FC = () => {
   const renderForm = (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Stack spacing={2.5} alignItems="flex-end">
-        <RHFTextField name="usuario" label="Usuario" />
+        <RHFTextField 
+          name="usuario" 
+          label="Usuario"
+          sx={{
+            '& .MuiInputBase-root': {
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9',
+            },
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#1976d2',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#115293',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#0d3a6a',
+            },
+            '& .MuiInputLabel-root': {
+              color: '#1976d2',
+            },
+            '&:hover .MuiInputLabel-root': {
+              color: '#115293',
+            },
+            '&.Mui-focused .MuiInputLabel-root': {
+              color: '#0d3a6a',
+            },
+            '& .MuiInputBase-input': {
+              color: '#0d3a6a',
+            },
+          }}
+        />
 
         <RHFTextField
           name="contraseña"
@@ -86,11 +116,58 @@ const Login: React.FC = () => {
               </InputAdornment>
             ),
           }}
+          sx={{
+            '& .MuiInputBase-root': {
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9',
+            },
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#1976d2',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#115293',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#0d3a6a',
+            },
+            '& .MuiInputLabel-root': {
+              color: '#1976d2',
+            },
+            '&:hover .MuiInputLabel-root': {
+              color: '#115293',
+            },
+            '&.Mui-focused .MuiInputLabel-root': {
+              color: '#0d3a6a',
+            },
+            '& .MuiInputBase-input': {
+              color: '#0d3a6a',
+            },
+          }}
         />
 
         <LoadingButton
           fullWidth
-          color="primary"
+          sx={{
+            width: "200px",
+            marginLeft: 1,
+            backgroundColor: "#1976d2",
+            color: "white",
+            fontWeight: "bold",
+            textTransform: "none",
+            borderRadius: "8px",
+            boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+            "&:hover": {
+              backgroundColor: "#115293",
+              boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+            },
+            "&:active": {
+              backgroundColor: "#0d3a6a",
+            },
+            "&:focus": {
+              outline: "none",
+              boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+            },
+          }}
           size="large"
           type="submit"
           variant="contained"

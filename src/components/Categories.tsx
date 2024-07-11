@@ -39,7 +39,6 @@ const Categories: React.FC = () => {
     event.preventDefault();
     setLoading(true);
 
-    // Validación para comprobar si el nombre de la categoría ya existe
     const categoryExists = categories.some(
       (category) => category.name.toLowerCase() === categoryName.toLowerCase()
     );
@@ -58,7 +57,7 @@ const Categories: React.FC = () => {
       console.error(error);
     } else {
       setCategoryName('');
-      setValidationError(''); // Limpiar el error de validación si la inserción fue exitosa
+      setValidationError('');
       fetchCategories();
     }
     setLoading(false);
@@ -67,7 +66,7 @@ const Categories: React.FC = () => {
   const handleEditCategory = (id: number, name: string) => {
     setEditCategoryId(id);
     setEditCategoryName(name);
-    setEditOpen(true); // Abrir el modal de edición
+    setEditOpen(true);
   };
 
   const handleSaveEdit = async () => {
@@ -82,7 +81,7 @@ const Categories: React.FC = () => {
       setEditCategoryId(null);
       setEditCategoryName('');
       fetchCategories();
-      setEditOpen(false); // Cerrar el modal de edición
+      setEditOpen(false);
     }
     setLoading(false);
   };
@@ -115,52 +114,104 @@ const Categories: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="md">
-      <Backdrop open={loading} style={{ zIndex: 1400 }}>
+    <Container component="main" maxWidth="lg" sx={{ mt: 4 }}>
+      <Backdrop open={loading} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
       <Box
         sx={{
-          marginTop: 8,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          width: '100%',
         }}
       >
         <Typography component="h1" variant="h5">
           Categorías
         </Typography>
-        <Box component="form" onSubmit={handleAddCategory} noValidate sx={{ mt: 3 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="categoryName"
-            label="Nombre de la Categoría"
-            name="categoryName"
-            autoComplete="off"
-            autoFocus
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            error={!!validationError}
-            helperText={validationError}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 2, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Agregar Categoría'}
-          </Button>
+        <Box component="form" onSubmit={handleAddCategory} noValidate sx={{ mt: 3, width: '100%' }}>
+        <TextField
+  margin="normal"
+  required
+  fullWidth
+  id="categoryName"
+  label="Nombre de la Categoría"
+  name="categoryName"
+  autoComplete="off"
+  autoFocus
+  value={categoryName}
+  onChange={(e) => setCategoryName(e.target.value)}
+  error={!!validationError}
+  helperText={validationError}
+  sx={{
+    mb: 2,
+    '& .MuiInputBase-root': {
+      borderRadius: '8px',
+      backgroundColor: '#f9f9f9',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#1976d2',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#115293',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#0d3a6a',
+    },
+    '& .MuiInputLabel-root': {
+      color: '#1976d2',
+    },
+    '&:hover .MuiInputLabel-root': {
+      color: '#115293',
+    },
+    '&.Mui-focused .MuiInputLabel-root': {
+      color: '#0d3a6a',
+    },
+    '& .MuiInputBase-input': {
+      color: '#0d3a6a',
+    },
+    '& .MuiFormHelperText-root': {
+      color: 'red',
+    },
+  }}
+/>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                width: "200px",
+                backgroundColor: "#1976d2",
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+                "&:hover": {
+                  backgroundColor: "#115293",
+                  boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                },
+                "&:active": {
+                  backgroundColor: "#0d3a6a",
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                },
+              }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Agregar Categoría'}
+            </Button>
+          </Box>
         </Box>
-        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', mt: 4 }}>
           <Table sx={{ minWidth: 300 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell>Nombre de la Categoría</TableCell>
-                <TableCell align="right">Acciones</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Nombre de la Categoría</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }} align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -193,27 +244,80 @@ const Categories: React.FC = () => {
         </TableContainer>
       </Box>
 
-      {/* Modal de edición */}
       <Dialog open={editOpen} onClose={handleEditClose}>
         <DialogTitle>Editar Categoría</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} noValidate sx={{ mt: 3 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="editCategoryName"
-              label="Nombre de la Categoría"
-              name="editCategoryName"
-              autoComplete="off"
-              value={editCategoryName}
-              onChange={(e) => setEditCategoryName(e.target.value)}
-            />
+          <TextField
+  margin="normal"
+  required
+  fullWidth
+  id="editCategoryName"
+  label="Nombre de la Categoría"
+  name="editCategoryName"
+  autoComplete="off"
+  value={editCategoryName}
+  onChange={(e) => setEditCategoryName(e.target.value)}
+  sx={{
+    mb: 2,
+    '& .MuiInputBase-root': {
+      borderRadius: '8px',
+      backgroundColor: '#f9f9f9',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#1976d2',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#115293',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#0d3a6a',
+    },
+    '& .MuiInputLabel-root': {
+      color: '#1976d2',
+    },
+    '&:hover .MuiInputLabel-root': {
+      color: '#115293',
+    },
+    '&.Mui-focused .MuiInputLabel-root': {
+      color: '#0d3a6a',
+    },
+    '& .MuiInputBase-input': {
+      color: '#0d3a6a',
+    },
+  }}
+/>
+
             <DialogActions>
-              <Button onClick={handleEditClose} color="secondary">
+              <Button
+                onClick={handleEditClose}
+                sx={{
+                  color: 'white',
+                  backgroundColor: 'secondary.main',
+                  '&:hover': {
+                    backgroundColor: 'secondary.dark',
+                  },
+                  '&:active': {
+                    backgroundColor: 'secondary.darker',
+                  },
+                }}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary">
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  color: 'white',
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                  '&:active': {
+                    backgroundColor: 'primary.darker',
+                  },
+                }}
+              >
                 Guardar
               </Button>
             </DialogActions>
