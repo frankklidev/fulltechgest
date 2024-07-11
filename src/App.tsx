@@ -10,48 +10,51 @@ import HomePage from './components/HomePage';
 import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
 import { AuthProvider } from './components/context/AuthContext';
+import { Box } from '@mui/material';
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <Header />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/categories"
-            element={
-              <PrivateRoute>
-                <Categories />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/subcategories"
-            element={
-              <PrivateRoute>
-                <Subcategories />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/products"
-            element={
-              <PrivateRoute>
-                <Products />
-              </PrivateRoute>
-            }
-          />
-          {/* Otras rutas pueden ir aquí */}
-        </Routes>
+        <Box sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <HomePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <PrivateRoute>
+                  <Categories />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/subcategories"
+              element={
+                <PrivateRoute>
+                  <Subcategories />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <PrivateRoute>
+                  <Products />
+                </PrivateRoute>
+              }
+            />
+            {/* Otras rutas pueden ir aquí */}
+          </Routes>
+        </Box>
       </Router>
     </AuthProvider>
   );
