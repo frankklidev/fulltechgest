@@ -34,8 +34,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
 import { exportToExcel } from "../utils/exportToExcel";
-import RestoreIcon from '@mui/icons-material/Restore';
-
+import RestoreIcon from "@mui/icons-material/Restore";
 
 interface Category {
   id: number;
@@ -276,7 +275,6 @@ const Products: React.FC = () => {
     setEditProductIsEdited(product.isedited || true); // Set the initial state of the checkbox
     setModalOpen(true);
   };
-  
 
   const handleExport = () => {
     exportToExcel(products);
@@ -298,29 +296,30 @@ const Products: React.FC = () => {
   const handleDeleteProduct = async (id: number) => {
     setLoading(true);
     const productToDelete = products.find((product) => product.id === id);
-  
+
     if (productToDelete) {
       // Actualiza el campo isdeleted en lugar de eliminar el producto
       const { error } = await supabase
         .from("products")
         .update({ isdeleted: !productToDelete.isdeleted }) // Alterna el estado de isdeleted
         .eq("id", id);
-  
+
       if (error) {
         console.error("Error deleting product:", error);
       } else {
         // Actualiza el estado local de los productos
         setProducts(
           products.map((product) =>
-            product.id === id ? { ...product, isdeleted: !product.isdeleted } : product
+            product.id === id
+              ? { ...product, isdeleted: !product.isdeleted }
+              : product
           )
         );
       }
     }
-  
+
     setLoading(false);
   };
-  
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -616,195 +615,253 @@ const Products: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-  {paginatedProducts.map((product) => (
-    <TableRow
-      key={product.id}
-      sx={{
-        backgroundColor: product.isdeleted
-          ? "red"
-          : product.isedited
-          ? "yellow"
-          : !product.link
-          ? "green"
-          : "inherit",
-      }}
-    >
-      <TableCell>
-        {editProductId === product.id ? (
-          <TextField
-            fullWidth
-            value={editProductName}
-            onChange={(e) => setEditProductName(e.target.value)}
-            margin="normal"
-            disabled={product.isdeleted}
-          />
-        ) : (
-          product.name
-        )}
-      </TableCell>
-      <TableCell>
-        {editProductId === product.id ? (
-          <TextField
-            fullWidth
-            value={editProductDescription}
-            onChange={(e) => setEditProductDescription(e.target.value)}
-            margin="normal"
-            disabled={product.isdeleted}
-          />
-        ) : (
-          product.description
-        )}
-      </TableCell>
-      <TableCell>
-        {editProductId === product.id ? (
-          <TextField
-            fullWidth
-            type="number"
-            value={editProductPrice}
-            onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
-            margin="normal"
-            disabled={product.isdeleted}
-          />
-        ) : (
-          product.price
-        )}
-      </TableCell>
-      <TableCell>
-        {editProductId === product.id ? (
-          <TextField
-            fullWidth
-            value={editProductLink}
-            onChange={(e) => setEditProductLink(e.target.value)}
-            margin="normal"
-            disabled={product.isdeleted}
-          />
-        ) : (
-          <a href={product.link} target="_blank" rel="noopener noreferrer">
-            {product.link}
-          </a>
-        )}
-      </TableCell>
-      <TableCell>
-        {editProductId === product.id ? (
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel id="edit-select-category-label">Categoría</InputLabel>
-            <Select
-              labelId="edit-select-category-label"
-              id="edit-select-category"
-              value={editSelectedCategory}
-              label="Categoría"
-              onChange={(e) => setEditSelectedCategory(e.target.value as number)}
-              disabled={product.isdeleted}
-            >
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        ) : (
-          categories.find((category) => category.id === product.category_id)?.name
-        )}
-      </TableCell>
-      <TableCell>
-        {editProductId === product.id ? (
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel id="edit-select-subcategory-label">Subcategoría</InputLabel>
-            <Select
-              labelId="edit-select-subcategory-label"
-              id="edit-select-subcategory"
-              value={editSelectedSubcategory}
-              label="Subcategoría"
-              onChange={(e) => setEditSelectedSubcategory(e.target.value as number)}
-              disabled={product.isdeleted}
-            >
-              {subcategories
-                .filter((subcategory) => subcategory.category_id === editSelectedCategory)
-                .map((subcategory) => (
-                  <MenuItem key={subcategory.id} value={subcategory.id}>
-                    {subcategory.name}
-                  </MenuItem>
+                {paginatedProducts.map((product) => (
+                  <TableRow
+                    key={product.id}
+                    sx={{
+                      backgroundColor: product.isdeleted
+                        ? "red"
+                        : !product.link
+                        ? "green"
+                        : product.isedited
+                        ? "yellow"
+                        : "inherit",
+                    }}
+                  >
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductName}
+                          onChange={(e) => setEditProductName(e.target.value)}
+                          margin="normal"
+                          disabled={product.isdeleted}
+                        />
+                      ) : (
+                        product.name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductDescription}
+                          onChange={(e) =>
+                            setEditProductDescription(e.target.value)
+                          }
+                          margin="normal"
+                          disabled={product.isdeleted}
+                        />
+                      ) : (
+                        product.description
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          type="number"
+                          value={editProductPrice}
+                          onChange={(e) =>
+                            setEditProductPrice(parseFloat(e.target.value))
+                          }
+                          margin="normal"
+                          disabled={product.isdeleted}
+                        />
+                      ) : (
+                        product.price
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductLink}
+                          onChange={(e) => setEditProductLink(e.target.value)}
+                          margin="normal"
+                          disabled={product.isdeleted}
+                        />
+                      ) : (
+                        <a
+                          href={product.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {product.link}
+                        </a>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <FormControl fullWidth sx={{ mt: 2 }}>
+                          <InputLabel id="edit-select-category-label">
+                            Categoría
+                          </InputLabel>
+                          <Select
+                            labelId="edit-select-category-label"
+                            id="edit-select-category"
+                            value={editSelectedCategory}
+                            label="Categoría"
+                            onChange={(e) =>
+                              setEditSelectedCategory(e.target.value as number)
+                            }
+                            disabled={product.isdeleted}
+                          >
+                            {categories.map((category) => (
+                              <MenuItem key={category.id} value={category.id}>
+                                {category.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        categories.find(
+                          (category) => category.id === product.category_id
+                        )?.name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editProductId === product.id ? (
+                        <FormControl fullWidth sx={{ mt: 2 }}>
+                          <InputLabel id="edit-select-subcategory-label">
+                            Subcategoría
+                          </InputLabel>
+                          <Select
+                            labelId="edit-select-subcategory-label"
+                            id="edit-select-subcategory"
+                            value={editSelectedSubcategory}
+                            label="Subcategoría"
+                            onChange={(e) =>
+                              setEditSelectedSubcategory(
+                                e.target.value as number
+                              )
+                            }
+                            disabled={product.isdeleted}
+                          >
+                            {subcategories
+                              .filter(
+                                (subcategory) =>
+                                  subcategory.category_id ===
+                                  editSelectedCategory
+                              )
+                              .map((subcategory) => (
+                                <MenuItem
+                                  key={subcategory.id}
+                                  value={subcategory.id}
+                                >
+                                  {subcategory.name}
+                                </MenuItem>
+                              ))}
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        subcategories.find(
+                          (subcategory) =>
+                            subcategory.id === product.subcategory_id
+                        )?.name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      )}
+                      {editProductId === product.id && (
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            setEditProductImage(
+                              e.target.files ? e.target.files[0] : null
+                            )
+                          }
+                          style={{ marginTop: 16 }}
+                          disabled={product.isdeleted}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {editProductId === product.id ? (
+                        <>
+                          <IconButton
+                            onClick={handleSaveEdit}
+                            color="primary"
+                            disabled={product.isdeleted}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={resetEditState}
+                            color="secondary"
+                            disabled={product.isdeleted}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <>
+                          <IconButton
+                            onClick={() => handleEditProduct(product)}
+                            sx={{ color: "black" }}
+                            disabled={product.isdeleted}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleDeleteProduct(product.id)}
+                            sx={{ color: "black" }}
+                          >
+                            {product.isdeleted ? (
+                              <RestoreIcon />
+                            ) : (
+                              <DeleteIcon />
+                            )}
+                          </IconButton>
+                        </>
+                      )}
+                      {product.isdeleted && (
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={product.isdeleted}
+                              onChange={async (e) => {
+                                const updatedProduct = {
+                                  ...product,
+                                  isdeleted: e.target.checked,
+                                };
+                                const { error } = await supabase
+                                  .from("products")
+                                  .update({ isdeleted: e.target.checked })
+                                  .eq("id", product.id);
+                                if (error) {
+                                  console.error(
+                                    "Error updating product:",
+                                    error
+                                  );
+                                } else {
+                                  setProducts(
+                                    products.map((p) =>
+                                      p.id === product.id ? updatedProduct : p
+                                    )
+                                  );
+                                }
+                              }}
+                            />
+                          }
+                          label="Eliminado"
+                        />
+                      )}
+                    </TableCell>
+                  </TableRow>
                 ))}
-            </Select>
-          </FormControl>
-        ) : (
-          subcategories.find((subcategory) => subcategory.id === product.subcategory_id)?.name
-        )}
-      </TableCell>
-      <TableCell>
-        {product.image_url && (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            style={{
-              width: "50px",
-              height: "50px",
-              objectFit: "cover",
-            }}
-          />
-        )}
-        {editProductId === product.id && (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setEditProductImage(e.target.files ? e.target.files[0] : null)
-            }
-            style={{ marginTop: 16 }}
-            disabled={product.isdeleted}
-          />
-        )}
-      </TableCell>
-      <TableCell align="right">
-        {editProductId === product.id ? (
-          <>
-            <IconButton onClick={handleSaveEdit} color="primary" disabled={product.isdeleted}>
-              <SaveIcon />
-            </IconButton>
-            <IconButton onClick={resetEditState} color="secondary" disabled={product.isdeleted}>
-              <CancelIcon />
-            </IconButton>
-          </>
-        ) : (
-          <>
-            <IconButton onClick={() => handleEditProduct(product)} sx={{ color: 'black' }} disabled={product.isdeleted}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteProduct(product.id)} sx={{ color: 'black' }}>
-              {product.isdeleted ? <RestoreIcon /> : <DeleteIcon />}
-            </IconButton>
-          </>
-        )}
-        {product.isdeleted && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={product.isdeleted}
-                onChange={async (e) => {
-                  const updatedProduct = { ...product, isdeleted: e.target.checked };
-                  const { error } = await supabase
-                    .from("products")
-                    .update({ isdeleted: e.target.checked })
-                    .eq("id", product.id);
-                  if (error) {
-                    console.error("Error updating product:", error);
-                  } else {
-                    setProducts(products.map((p) => (p.id === product.id ? updatedProduct : p)));
-                  }
-                }}
-              />
-            }
-            label="Eliminado"
-          />
-        )}
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-
-
-
+              </TableBody>
             </Table>
           </TableContainer>
         )}
@@ -829,175 +886,194 @@ const Products: React.FC = () => {
         )}
       </Box>
       <Modal
-  open={modalOpen}
-  onClose={resetEditState}
-  aria-labelledby="edit-product-modal-title"
-  aria-describedby="edit-product-modal-description"
->
-  <MuiBox
-    sx={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: 400,
-      bgcolor: "background.paper",
-      boxShadow: 24,
-      p: 4,
-      borderRadius: 2,
-    }}
-  >
-    <h2 id="edit-product-modal-title">Editar Producto</h2>
-    <Box component="form" noValidate sx={{ mt: 3 }}>
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductName"
-        label="Nombre del Producto"
-        name="editProductName"
-        autoComplete="off"
-        autoFocus
-        value={editProductName}
-        onChange={(e) => setEditProductName(e.target.value)}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductDescription"
-        label="Descripción"
-        name="editProductDescription"
-        autoComplete="off"
-        value={editProductDescription}
-        onChange={(e) => setEditProductDescription(e.target.value)}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        type="number"
-        id="editProductPrice"
-        label="Precio"
-        name="editProductPrice"
-        autoComplete="off"
-        value={editProductPrice}
-        onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductLink"
-        label="Enlace"
-        name="editProductLink"
-        autoComplete="off"
-        value={editProductLink}
-        onChange={(e) => setEditProductLink(e.target.value)}
-      />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) =>
-          setEditProductImage(e.target.files ? e.target.files[0] : null)
-        }
-        style={{ marginTop: 16 }}
-      />
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel id="edit-select-category-label">Categoría</InputLabel>
-        <Select
-          labelId="edit-select-category-label"
-          id="edit-select-category"
-          value={editSelectedCategory}
-          label="Categoría"
-          onChange={(e) => setEditSelectedCategory(e.target.value as number)}
+        open={modalOpen}
+        onClose={resetEditState}
+        aria-labelledby="edit-product-modal-title"
+        aria-describedby="edit-product-modal-description"
+      >
+        <MuiBox
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
         >
-          {categories.map((category) => (
-            <MenuItem key={category.id} value={category.id}>
-              {category.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel id="edit-select-subcategory-label">Subcategoría</InputLabel>
-        <Select
-          labelId="edit-select-subcategory-label"
-          id="edit-select-subcategory"
-          value={editSelectedSubcategory}
-          label="Subcategoría"
-          onChange={(e) => setEditSelectedSubcategory(e.target.value as number)}
-        >
-          {subcategories
-            .filter((subcategory) => subcategory.category_id === editSelectedCategory)
-            .map((subcategory) => (
-              <MenuItem key={subcategory.id} value={subcategory.id}>
-                {subcategory.name}
-              </MenuItem>
-            ))}
-        </Select>
-      </FormControl>
-      {editProductIsEdited && (
-        <FormControlLabel
-          control={
-            <Switch
-              checked={editProductIsEdited}
-              onChange={(e) => setEditProductIsEdited(e.target.checked)}
+          <h2 id="edit-product-modal-title">Editar Producto</h2>
+          <Box component="form" noValidate sx={{ mt: 3 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductName"
+              label="Nombre del Producto"
+              name="editProductName"
+              autoComplete="off"
+              autoFocus
+              value={editProductName}
+              onChange={(e) => setEditProductName(e.target.value)}
             />
-          }
-          label="Editado"
-        />
-      )}
-{editProductId !== null && (
-  <FormControlLabel
-    control={
-      <Switch
-        checked={products.find((p) => p.id === editProductId)?.isdeleted || false}
-        onChange={async (e) => {
-          const updatedProduct = products.find((p) => p.id === editProductId);
-          if (updatedProduct) {
-            updatedProduct.isdeleted = e.target.checked;
-            const { error } = await supabase
-              .from("products")
-              .update({ isdeleted: e.target.checked })
-              .eq("id", editProductId);
-            if (error) {
-              console.error("Error updating product:", error);
-            } else {
-              setProducts(products.map((p) => (p.id === editProductId ? updatedProduct : p)));
-            }
-          }
-        }}
-        disabled={editProductId !== null && products.find((p) => p.id === editProductId)?.isdeleted}
-      />
-    }
-    label="Eliminado"
-  />
-)}
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductDescription"
+              label="Descripción"
+              name="editProductDescription"
+              autoComplete="off"
+              value={editProductDescription}
+              onChange={(e) => setEditProductDescription(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              type="number"
+              id="editProductPrice"
+              label="Precio"
+              name="editProductPrice"
+              autoComplete="off"
+              value={editProductPrice}
+              onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductLink"
+              label="Enlace"
+              name="editProductLink"
+              autoComplete="off"
+              value={editProductLink}
+              onChange={(e) => setEditProductLink(e.target.value)}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setEditProductImage(e.target.files ? e.target.files[0] : null)
+              }
+              style={{ marginTop: 16 }}
+            />
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="edit-select-category-label">Categoría</InputLabel>
+              <Select
+                labelId="edit-select-category-label"
+                id="edit-select-category"
+                value={editSelectedCategory}
+                label="Categoría"
+                onChange={(e) =>
+                  setEditSelectedCategory(e.target.value as number)
+                }
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="edit-select-subcategory-label">
+                Subcategoría
+              </InputLabel>
+              <Select
+                labelId="edit-select-subcategory-label"
+                id="edit-select-subcategory"
+                value={editSelectedSubcategory}
+                label="Subcategoría"
+                onChange={(e) =>
+                  setEditSelectedSubcategory(e.target.value as number)
+                }
+              >
+                {subcategories
+                  .filter(
+                    (subcategory) =>
+                      subcategory.category_id === editSelectedCategory
+                  )
+                  .map((subcategory) => (
+                    <MenuItem key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            {editProductIsEdited && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editProductIsEdited}
+                    onChange={(e) => setEditProductIsEdited(e.target.checked)}
+                  />
+                }
+                label="Editado"
+              />
+            )}
+            {editProductId !== null && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={
+                      products.find((p) => p.id === editProductId)?.isdeleted ||
+                      false
+                    }
+                    onChange={async (e) => {
+                      const updatedProduct = products.find(
+                        (p) => p.id === editProductId
+                      );
+                      if (updatedProduct) {
+                        updatedProduct.isdeleted = e.target.checked;
+                        const { error } = await supabase
+                          .from("products")
+                          .update({ isdeleted: e.target.checked })
+                          .eq("id", editProductId);
+                        if (error) {
+                          console.error("Error updating product:", error);
+                        } else {
+                          setProducts(
+                            products.map((p) =>
+                              p.id === editProductId ? updatedProduct : p
+                            )
+                          );
+                        }
+                      }
+                    }}
+                    disabled={
+                      editProductId !== null &&
+                      products.find((p) => p.id === editProductId)?.isdeleted
+                    }
+                  />
+                }
+                label="Eliminado"
+              />
+            )}
+          </Box>
 
-    </Box>
-
-    <DialogActions>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSaveEdit}
-        startIcon={<SaveIcon />}
-      >
-        Guardar
-      </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={resetEditState}
-        startIcon={<CancelIcon />}
-      >
-        Cancelar
-      </Button>
-    </DialogActions>
-  </MuiBox>
-</Modal>
-
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSaveEdit}
+              startIcon={<SaveIcon />}
+            >
+              Guardar
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={resetEditState}
+              startIcon={<CancelIcon />}
+            >
+              Cancelar
+            </Button>
+          </DialogActions>
+        </MuiBox>
+      </Modal>
     </Container>
   );
 };
