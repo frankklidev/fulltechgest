@@ -22,8 +22,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
-  Typography
+  IconButton
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
