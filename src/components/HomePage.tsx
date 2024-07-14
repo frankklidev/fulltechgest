@@ -104,6 +104,29 @@ const HomePage: React.FC = () => {
             </CardActions>
           </Card>
         </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                Testimonios
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Agrega y gestiona los testimonios.
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/testimonials')}
+                sx={{ marginLeft: 'auto' }}
+              >
+                Ir a Testimonios
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
       </Grid>
     </Container>
   );

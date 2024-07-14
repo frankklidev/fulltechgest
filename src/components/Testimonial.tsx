@@ -18,18 +18,18 @@ import {
   CircularProgress,
   Backdrop,
   IconButton,
+  Rating,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { supabase } from "./supabaseClient";
-
+import { supabase } from "../supabaseClient";
 
 interface Testimonial {
   id: number;
   name: string;
   review: string;
-  rating_number: number;
-  created_at?: string;
+  ratingNumber: number;
+  createdAt: string;
 }
 
 const Testimonials: React.FC = () => {
@@ -63,7 +63,7 @@ const Testimonials: React.FC = () => {
 
     const { data, error } = await supabase
       .from("testimonials")
-      .insert([{ name, review, rating_number: ratingNumber }])
+      .insert([{ name, review, ratingNumber, createdAt: new Date().toISOString() }])
       .select("*");
     if (error) {
       console.error("Error adding testimonial:", error);
@@ -86,7 +86,7 @@ const Testimonials: React.FC = () => {
       .update({
         name: editName,
         review: editReview,
-        rating_number: editRatingNumber,
+        ratingNumber: editRatingNumber,
       })
       .eq("id", editTestimonialId)
       .select("*");
@@ -109,7 +109,7 @@ const Testimonials: React.FC = () => {
     setEditTestimonialId(testimonial.id);
     setEditName(testimonial.name);
     setEditReview(testimonial.review);
-    setEditRatingNumber(testimonial.rating_number);
+    setEditRatingNumber(testimonial.ratingNumber);
     setModalOpen(true);
   };
 
@@ -178,12 +178,7 @@ const Testimonials: React.FC = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Agregar Testimonio</DialogTitle>
         <DialogContent>
-          <Box
-            component="form"
-            onSubmit={handleAddTestimonial}
-            noValidate
-            sx={{ mt: 3 }}
-          >
+          <Box component="form" onSubmit={handleAddTestimonial} noValidate sx={{ mt: 3 }}>
             <TextField
               margin="normal"
               required
@@ -207,18 +202,12 @@ const Testimonials: React.FC = () => {
               value={review}
               onChange={(e) => setReview(e.target.value)}
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="ratingNumber"
-              label="Calificación"
-              name="ratingNumber"
-              type="number"
-              inputProps={{ min: "1", max: "5", step: "1" }}
-              autoComplete="off"
+            <Rating
+              name="rating"
               value={ratingNumber}
-              onChange={(e) => setRatingNumber(parseInt(e.target.value))}
+              onChange={(event, newValue) => {
+                setRatingNumber(newValue || 0);
+              }}
             />
             <DialogActions>
               <Button
@@ -339,8 +328,10 @@ const Testimonials: React.FC = () => {
               >
                 <TableCell sx={{ padding: "8px" }}>{testimonial.name}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>{testimonial.review}</TableCell>
-                <TableCell sx={{ padding: "8px" }}>{testimonial.rating_number}</TableCell>
-                <TableCell sx={{ padding: "8px" }}>{testimonial.created_at}</TableCell>
+                <TableCell sx={{ padding: "8px" }}>
+                  <Rating value={testimonial.ratingNumber} readOnly />
+                </TableCell>
+                <TableCell sx={{ padding: "8px" }}>{new Date(testimonial.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell
                   sx={{
                     padding: "8px",
@@ -401,18 +392,12 @@ const Testimonials: React.FC = () => {
               value={editReview}
               onChange={(e) => setEditReview(e.target.value)}
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="editRatingNumber"
-              label="Calificación"
-              name="editRatingNumber"
-              type="number"
-              inputProps={{ min: "1", max: "5", step: "1" }}
-              autoComplete="off"
+            <Rating
+              name="editRating"
               value={editRatingNumber}
-              onChange={(e) => setEditRatingNumber(parseInt(e.target.value))}
+              onChange={(event, newValue) => {
+                setEditRatingNumber(newValue || 0);
+              }}
             />
             <DialogActions>
               <Button
