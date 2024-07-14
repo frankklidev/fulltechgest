@@ -64,9 +64,23 @@ const Header: React.FC = () => {
               <Button
                 color="inherit"
                 onClick={() => navigate('/subcategories')}
-                sx={{ fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+                sx={{ marginRight: 2, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
               >
                 Subcategorías
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/special-offers')}
+                sx={{ marginRight: 2, fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
+                Ofertas Especiales
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/testimonials')}
+                sx={{ fontWeight: 'bold', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+              >
+                Testimonios
               </Button>
             </Box>
             <Box sx={{ display: { xs: 'block', md: 'none' }, ml: 'auto' }}>
@@ -85,6 +99,8 @@ const Header: React.FC = () => {
                 <MenuItem onClick={() => handleNavigation('/products')}>Productos</MenuItem>
                 <MenuItem onClick={() => handleNavigation('/categories')}>Categorías</MenuItem>
                 <MenuItem onClick={() => handleNavigation('/subcategories')}>Subcategorías</MenuItem>
+                <MenuItem onClick={() => handleNavigation('/special-offers')}>Ofertas Especiales</MenuItem>
+                <MenuItem onClick={() => handleNavigation('/testimonials')}>Testimonios</MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
                   <LogoutIcon sx={{ marginRight: 1 }} />

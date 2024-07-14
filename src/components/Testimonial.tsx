@@ -18,7 +18,7 @@ import {
   CircularProgress,
   Backdrop,
   IconButton,
-  Rating,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -28,8 +28,8 @@ interface Testimonial {
   id: number;
   name: string;
   review: string;
-  ratingNumber: number;
-  createdAt: string;
+  rating_number: number;
+  created_at?: string;
 }
 
 const Testimonials: React.FC = () => {
@@ -44,6 +44,7 @@ const Testimonials: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     fetchTestimonials();
@@ -60,14 +61,21 @@ const Testimonials: React.FC = () => {
   const handleAddTestimonial = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+    setError("");
+
+    if (ratingNumber < 1 || ratingNumber > 5) {
+      setError("La calificación debe estar entre 1 y 5.");
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("testimonials")
-      .insert([{ name, review, ratingNumber, createdAt: new Date().toISOString() }])
+      .insert([{ name, review, rating_number: ratingNumber }])
       .select("*");
     if (error) {
       console.error("Error adding testimonial:", error);
-      alert("Error adding testimonial: " + error.message);
+      setError("Error adding testimonial: " + error.message);
     } else if (data && data.length > 0) {
       setTestimonials([...testimonials, data[0]]);
       setName("");
@@ -80,19 +88,27 @@ const Testimonials: React.FC = () => {
 
   const handleSaveEdit = async () => {
     setLoading(true);
+    setError("");
+
+    if (editRatingNumber < 1 || editRatingNumber > 5) {
+      setError("La calificación debe estar entre 1 y 5.");
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("testimonials")
       .update({
         name: editName,
         review: editReview,
-        ratingNumber: editRatingNumber,
+        rating_number: editRatingNumber,
       })
       .eq("id", editTestimonialId)
       .select("*");
 
     if (error) {
       console.error("Error updating testimonial:", error);
+      setError("Error updating testimonial: " + error.message);
     } else if (data && data.length > 0) {
       setTestimonials(
         testimonials.map((testimonial) =>
@@ -109,7 +125,7 @@ const Testimonials: React.FC = () => {
     setEditTestimonialId(testimonial.id);
     setEditName(testimonial.name);
     setEditReview(testimonial.review);
-    setEditRatingNumber(testimonial.ratingNumber);
+    setEditRatingNumber(testimonial.rating_number);
     setModalOpen(true);
   };
 
@@ -138,6 +154,7 @@ const Testimonials: React.FC = () => {
 
   const handleClose = () => {
     setOpen(false);
+    setError("");
   };
 
   return (
@@ -178,7 +195,13 @@ const Testimonials: React.FC = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Agregar Testimonio</DialogTitle>
         <DialogContent>
-          <Box component="form" onSubmit={handleAddTestimonial} noValidate sx={{ mt: 3 }}>
+          {error && <Alert severity="error">{error}</Alert>}
+          <Box
+            component="form"
+            onSubmit={handleAddTestimonial}
+            noValidate
+            sx={{ mt: 3 }}
+          >
             <TextField
               margin="normal"
               required
@@ -202,12 +225,18 @@ const Testimonials: React.FC = () => {
               value={review}
               onChange={(e) => setReview(e.target.value)}
             />
-            <Rating
-              name="rating"
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="ratingNumber"
+              label="Calificación"
+              name="ratingNumber"
+              type="number"
+              inputProps={{ min: "1", max: "5", step: "1" }}
+              autoComplete="off"
               value={ratingNumber}
-              onChange={(event, newValue) => {
-                setRatingNumber(newValue || 0);
-              }}
+              onChange={(e) => setRatingNumber(parseInt(e.target.value))}
             />
             <DialogActions>
               <Button
@@ -328,10 +357,8 @@ const Testimonials: React.FC = () => {
               >
                 <TableCell sx={{ padding: "8px" }}>{testimonial.name}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>{testimonial.review}</TableCell>
-                <TableCell sx={{ padding: "8px" }}>
-                  <Rating value={testimonial.ratingNumber} readOnly />
-                </TableCell>
-                <TableCell sx={{ padding: "8px" }}>{new Date(testimonial.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell sx={{ padding: "8px" }}>{testimonial.rating_number}</TableCell>
+                <TableCell sx={{ padding: "8px" }}>{testimonial.created_at}</TableCell>
                 <TableCell
                   sx={{
                     padding: "8px",
@@ -361,6 +388,7 @@ const Testimonials: React.FC = () => {
       <Dialog open={modalOpen} onClose={resetEditState}>
         <DialogTitle>Editar Testimonio</DialogTitle>
         <DialogContent>
+          {error && <Alert severity="error">{error}</Alert>}
           <Box
             component="form"
             onSubmit={(e) => {
@@ -392,12 +420,18 @@ const Testimonials: React.FC = () => {
               value={editReview}
               onChange={(e) => setEditReview(e.target.value)}
             />
-            <Rating
-              name="editRating"
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editRatingNumber"
+              label="Calificación"
+              name="editRatingNumber"
+              type="number"
+              inputProps={{ min: "1", max: "5", step: "1" }}
+              autoComplete="off"
               value={editRatingNumber}
-              onChange={(event, newValue) => {
-                setEditRatingNumber(newValue || 0);
-              }}
+              onChange={(e) => setEditRatingNumber(parseInt(e.target.value))}
             />
             <DialogActions>
               <Button
