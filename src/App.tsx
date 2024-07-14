@@ -6,11 +6,12 @@ import Categories from './components/Categories';
 import Subcategories from './components/Subcategories';
 import Products from './components/Products';
 import HomePage from './components/HomePage';
-
+ // Asegúrate de importar el nuevo componente
 import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
 import { AuthProvider } from './components/context/AuthContext';
 import { Box } from '@mui/material';
+import SpecialOffers from './components/SpecialOffers';
 
 const App: React.FC = () => {
   return (
@@ -49,6 +50,14 @@ const App: React.FC = () => {
               element={
                 <PrivateRoute>
                   <Products />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/special-offers"
+              element={
+                <PrivateRoute>
+                  <SpecialOffers />
                 </PrivateRoute>
               }
             />

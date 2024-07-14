@@ -12,9 +12,9 @@ const HomePage: React.FC = () => {
   return (
     <Container component="main" maxWidth="lg" sx={{ marginTop: 4 }}>
       <Grid container spacing={4}>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
-            <CardContent>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
               <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Categorías
               </Typography>
@@ -35,9 +35,9 @@ const HomePage: React.FC = () => {
             </CardActions>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
-            <CardContent>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
               <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Subcategorías
               </Typography>
@@ -58,9 +58,9 @@ const HomePage: React.FC = () => {
             </CardActions>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
-            <CardContent>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
               <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
                 Productos
               </Typography>
@@ -77,6 +77,29 @@ const HomePage: React.FC = () => {
                 sx={{ marginLeft: 'auto' }}
               >
                 Ir a Productos
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                Ofertas Especiales
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Gestiona las ofertas especiales.
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/special-offers')}
+                sx={{ marginLeft: 'auto' }}
+              >
+                Ir a Ofertas Especiales
               </Button>
             </CardActions>
           </Card>
