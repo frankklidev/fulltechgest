@@ -110,6 +110,23 @@ const Products: React.FC = () => {
     setFilteredSubcategories(filtered);
   }, [selectedCategory, subcategories]);
 
+  const checkImageExists = async (fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from("products")
+      .list("public", {
+        limit: 1,
+        offset: 0,
+        search: fileName,
+      });
+  
+    if (error) {
+      console.error("Error checking if image exists:", error);
+      return false;
+    }
+  
+    return data.length > 0;
+  };
+  
   const fetchCategories = async () => {
     const { data, error } = await supabase.from("categories").select("*");
     if (error) console.error("Error fetching categories:", error);
@@ -143,6 +160,7 @@ const Products: React.FC = () => {
     }
     return data.path;
   };
+  
 
   const handleImageDelete = async (imagePath: string) => {
     const { error } = await supabase.storage
@@ -156,25 +174,31 @@ const Products: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-
+  
     // Validación para comprobar si el nombre del producto ya existe
     const productExists = products.some(
       (product) => product.name.toLowerCase() === productName.toLowerCase()
     );
-
+  
     if (productExists) {
       alert("Un producto con este nombre ya existe.");
       setLoading(false);
       return;
     }
-
+  
     let imageUrl = "";
     if (productImage) {
-      const imagePath = await handleImageUpload(productImage);
-      if (imagePath) {
-        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
+      const imageExists = await checkImageExists(productImage.name);
+      if (imageExists) {
+        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${productImage.name}`;
+      } else {
+        const imagePath = await handleImageUpload(productImage);
+        if (imagePath) {
+          imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
+        }
       }
     }
+  
     const { data, error } = await supabase
       .from("products")
       .insert([
@@ -208,6 +232,7 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
+  
 
   const handleSaveEdit = async () => {
     setLoading(true);
@@ -216,23 +241,28 @@ const Products: React.FC = () => {
     const currentProduct = products.find(
       (product) => product.id === editProductId
     );
-
+  
     if (editProductImage) {
-      if (currentProduct?.image_url) {
-        const previousImagePath = currentProduct.image_url
-          .split("/")
-          .slice(4)
-          .join("/");
-        await handleImageDelete(previousImagePath);
-      }
-      imagePath = await handleImageUpload(editProductImage);
-      if (imagePath) {
-        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
+      const imageExists = await checkImageExists(editProductImage.name);
+      if (imageExists) {
+        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${editProductImage.name}`;
+      } else {
+        if (currentProduct?.image_url) {
+          const previousImagePath = currentProduct.image_url
+            .split("/")
+            .slice(4)
+            .join("/");
+          await handleImageDelete(previousImagePath);
+        }
+        imagePath = await handleImageUpload(editProductImage);
+        if (imagePath) {
+          imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
+        }
       }
     } else {
       imageUrl = currentProduct?.image_url || "";
     }
-
+  
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -247,7 +277,7 @@ const Products: React.FC = () => {
       })
       .eq("id", editProductId)
       .select("*");
-
+  
     if (error) {
       console.error("Error updating product:", error);
     } else if (data && data.length > 0) {
