@@ -34,7 +34,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
-import { exportToExcel } from "../utils/exportToExcel";
+import { exportLinksToTxt } from "../utils/exportToExcel";
 
 interface Category {
   id: number;
@@ -94,14 +94,22 @@ const Products: React.FC = () => {
   const [dataLoading, setDataLoading] = useState<boolean>(true); // Estado para el indicador de carga
   const [editProductIsEdited, setEditProductIsEdited] =
     useState<boolean>(false);
-    const [deletingImage, setDeletingImage] = useState<boolean>(false);
-
+  const [deletingImage, setDeletingImage] = useState<boolean>(false);
+  const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
 
   useEffect(() => {
     fetchCategories();
     fetchSubcategories();
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    setHasPendingChanges(
+      products.some(
+        (product) => product.isdeleted || product.isedited || !product.link
+      )
+    );
+  }, [products]);
 
   useEffect(() => {
     const filtered = subcategories.filter(
@@ -118,15 +126,15 @@ const Products: React.FC = () => {
         offset: 0,
         search: fileName,
       });
-  
+
     if (error) {
       console.error("Error checking if image exists:", error);
       return false;
     }
-  
+
     return data.length > 0;
   };
-  
+
   const fetchCategories = async () => {
     const { data, error } = await supabase.from("categories").select("*");
     if (error) console.error("Error fetching categories:", error);
@@ -160,7 +168,6 @@ const Products: React.FC = () => {
     }
     return data.path;
   };
-  
 
   const handleImageDelete = async (imagePath: string) => {
     const { error } = await supabase.storage
@@ -174,18 +181,18 @@ const Products: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-  
+
     // Validación para comprobar si el nombre del producto ya existe
     const productExists = products.some(
       (product) => product.name.toLowerCase() === productName.toLowerCase()
     );
-  
+
     if (productExists) {
       alert("Un producto con este nombre ya existe.");
       setLoading(false);
       return;
     }
-  
+
     let imageUrl = "";
     if (productImage) {
       const imageExists = await checkImageExists(productImage.name);
@@ -198,7 +205,7 @@ const Products: React.FC = () => {
         }
       }
     }
-  
+
     const { data, error } = await supabase
       .from("products")
       .insert([
@@ -232,7 +239,6 @@ const Products: React.FC = () => {
     }
     setLoading(false);
   };
-  
 
   const handleSaveEdit = async () => {
     setLoading(true);
@@ -241,7 +247,7 @@ const Products: React.FC = () => {
     const currentProduct = products.find(
       (product) => product.id === editProductId
     );
-  
+
     if (editProductImage) {
       const imageExists = await checkImageExists(editProductImage.name);
       if (imageExists) {
@@ -262,7 +268,7 @@ const Products: React.FC = () => {
     } else {
       imageUrl = currentProduct?.image_url || "";
     }
-  
+
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -277,7 +283,7 @@ const Products: React.FC = () => {
       })
       .eq("id", editProductId)
       .select("*");
-  
+
     if (error) {
       console.error("Error updating product:", error);
     } else if (data && data.length > 0) {
@@ -309,7 +315,7 @@ const Products: React.FC = () => {
   };
 
   const handleExport = () => {
-    exportToExcel(products);
+    exportLinksToTxt(products);
   };
 
   const resetEditState = () => {
@@ -363,6 +369,11 @@ const Products: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
+    setHasPendingChanges(
+      products.some(
+        (product) => product.isdeleted || product.isedited || !product.link
+      )
+    );
   };
 
   const filteredProducts = products.filter((product) => {
@@ -528,27 +539,29 @@ const Products: React.FC = () => {
             variant="contained"
             onClick={handleExport}
             sx={{
-              marginLeft: 1,
-              backgroundColor: "green",
+              backgroundColor: hasPendingChanges ? "#B0BEC5" : "#1976d2", // Gris si hay cambios pendientes
               color: "white",
               fontWeight: "bold",
               textTransform: "none",
               borderRadius: "8px",
-              boxShadow: "0 3px 5px 2px rgba(0, 128, 0, .3)",
+              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
               "&:hover": {
-                backgroundColor: "darkgreen",
-                boxShadow: "0 6px 10px 4px rgba(0, 128, 0, .3)",
+                backgroundColor: hasPendingChanges ? "#B0BEC5" : "#115293",
+                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
               },
               "&:active": {
-                backgroundColor: "forestgreen",
+                backgroundColor: hasPendingChanges ? "#B0BEC5" : "#0d3a6a",
               },
               "&:focus": {
                 outline: "none",
-                boxShadow: "0 0 0 4px rgba(0, 128, 0, .5)",
+                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
               },
             }}
+            disabled={hasPendingChanges}
           >
-            Exportar a Excel
+            {hasPendingChanges
+              ? "Hay Modificaciones pendientes"
+              : "Exportar Enlaces"}
           </Button>
 
           <Button
@@ -1206,309 +1219,315 @@ const Products: React.FC = () => {
         )}
       </Box>
       <Modal
-  open={modalOpen}
-  onClose={resetEditState}
-  aria-labelledby="edit-product-modal-title"
-  aria-describedby="edit-product-modal-description"
->
-  <MuiBox
-    sx={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: 400,
-      bgcolor: "background.paper",
-      boxShadow: 24,
-      p: 4,
-      borderRadius: 2,
-    }}
-  >
-    <h2 id="edit-product-modal-title">Editar Producto</h2>
-    <Box component="form" noValidate sx={{ mt: 3 }}>
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductName"
-        label="Nombre del Producto"
-        name="editProductName"
-        autoComplete="off"
-        autoFocus
-        value={editProductName}
-        onChange={(e) => setEditProductName(e.target.value)}
-        disabled={deletingImage}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductDescription"
-        label="Descripción"
-        name="editProductDescription"
-        autoComplete="off"
-        value={editProductDescription}
-        onChange={(e) => setEditProductDescription(e.target.value)}
-        disabled={deletingImage}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        type="number"
-        id="editProductPrice"
-        label="Precio"
-        name="editProductPrice"
-        autoComplete="off"
-        value={editProductPrice}
-        onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
-        disabled={deletingImage}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="editProductLink"
-        label="Enlace"
-        name="editProductLink"
-        autoComplete="off"
-        value={editProductLink}
-        onChange={(e) => setEditProductLink(e.target.value)}
-        disabled={deletingImage}
-      />
-
-      {editProductId !== null && products.find((p) => p.id === editProductId)?.image_url ? (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <img
-            src={products.find((p) => p.id === editProductId)?.image_url ?? ''}
-            alt={editProductName}
-            style={{
-              width: "100px",
-              height: "100px",
-              objectFit: "cover",
-              marginBottom: "10px",
-            }}
-          />
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={async () => {
-              setDeletingImage(true);
-              const productToUpdate = products.find((p) => p.id === editProductId);
-              if (productToUpdate && productToUpdate.image_url) {
-                const previousImagePath = productToUpdate.image_url
-                  .split("/")
-                  .slice(4)
-                  .join("/");
-                await handleImageDelete(previousImagePath);
-                const { data, error } = await supabase
-                  .from("products")
-                  .update({ image_url: null })
-                  .eq("id", editProductId)
-                  .select("*");
-
-                if (error) {
-                  console.error(
-                    "Error deleting image from product:",
-                    error
-                  );
-                } else {
-                  setProducts(
-                    products.map((product) =>
-                      product.id === editProductId
-                        ? { ...product, ...data[0] }
-                        : product
-                    )
-                  );
-                }
-              }
-              setDeletingImage(false);
-            }}
-            sx={{ marginTop: 2 }}
-            disabled={deletingImage}
-          >
-            {deletingImage ? (
-              <CircularProgress size={24} />
-            ) : (
-              "Eliminar Imagen"
-            )}
-          </Button>
-        </Box>
-      ) : (
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) =>
-            setEditProductImage(
-              e.target.files ? e.target.files[0] : null
-            )
-          }
-          style={{ marginTop: 16 }}
-          disabled={deletingImage}
-        />
-      )}
-      
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel id="edit-select-category-label">Categoría</InputLabel>
-        <Select
-          labelId="edit-select-category-label"
-          id="edit-select-category"
-          value={editSelectedCategory}
-          label="Categoría"
-          onChange={(e) =>
-            setEditSelectedCategory(e.target.value as number)
-          }
-          disabled={deletingImage}
+        open={modalOpen}
+        onClose={resetEditState}
+        aria-labelledby="edit-product-modal-title"
+        aria-describedby="edit-product-modal-description"
+      >
+        <MuiBox
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
         >
-          {categories.map((category) => (
-            <MenuItem key={category.id} value={category.id}>
-              {category.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel id="edit-select-subcategory-label">
-          Subcategoría
-        </InputLabel>
-        <Select
-          labelId="edit-select-subcategory-label"
-          id="edit-select-subcategory"
-          value={editSelectedSubcategory}
-          label="Subcategoría"
-          onChange={(e) =>
-            setEditSelectedSubcategory(e.target.value as number)
-          }
-          disabled={deletingImage}
-        >
-          {subcategories
-            .filter(
-              (subcategory) =>
-                subcategory.category_id === editSelectedCategory
-            )
-            .map((subcategory) => (
-              <MenuItem key={subcategory.id} value={subcategory.id}>
-                {subcategory.name}
-              </MenuItem>
-            ))}
-        </Select>
-      </FormControl>
-      {editProductId !== null &&
-        products.find((p) => p.id === editProductId)?.isedited && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={editProductIsEdited}
-                onChange={(e) => setEditProductIsEdited(e.target.checked)}
-                disabled={deletingImage}
-              />
-            }
-            label="Editado"
-          />
-        )}
+          <h2 id="edit-product-modal-title">Editar Producto</h2>
+          <Box component="form" noValidate sx={{ mt: 3 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductName"
+              label="Nombre del Producto"
+              name="editProductName"
+              autoComplete="off"
+              autoFocus
+              value={editProductName}
+              onChange={(e) => setEditProductName(e.target.value)}
+              disabled={deletingImage}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductDescription"
+              label="Descripción"
+              name="editProductDescription"
+              autoComplete="off"
+              value={editProductDescription}
+              onChange={(e) => setEditProductDescription(e.target.value)}
+              disabled={deletingImage}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              type="number"
+              id="editProductPrice"
+              label="Precio"
+              name="editProductPrice"
+              autoComplete="off"
+              value={editProductPrice}
+              onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
+              disabled={deletingImage}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductLink"
+              label="Enlace"
+              name="editProductLink"
+              autoComplete="off"
+              value={editProductLink}
+              onChange={(e) => setEditProductLink(e.target.value)}
+              disabled={deletingImage}
+            />
 
-      {editProductId !== null &&
-        products.find((p) => p.id === editProductId)?.isdeleted && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={
-                  products.find((p) => p.id === editProductId)
-                    ?.isdeleted || false
-                }
-                onChange={async (e) => {
-                  const updatedProduct = products.find(
-                    (p) => p.id === editProductId
-                  );
-                  if (updatedProduct) {
-                    updatedProduct.isdeleted = e.target.checked;
-                    const { error } = await supabase
-                      .from("products")
-                      .update({ isdeleted: e.target.checked })
-                      .eq("id", editProductId);
-                    if (error) {
-                      console.error("Error updating product:", error);
-                    } else {
-                      setProducts(
-                        products.map((p) =>
-                          p.id === editProductId ? updatedProduct : p
-                        )
-                      );
-                    }
-                  }
+            {editProductId !== null &&
+            products.find((p) => p.id === editProductId)?.image_url ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
                 }}
+              >
+                <img
+                  src={
+                    products.find((p) => p.id === editProductId)?.image_url ??
+                    ""
+                  }
+                  alt={editProductName}
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                    marginBottom: "10px",
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={async () => {
+                    setDeletingImage(true);
+                    const productToUpdate = products.find(
+                      (p) => p.id === editProductId
+                    );
+                    if (productToUpdate && productToUpdate.image_url) {
+                      const previousImagePath = productToUpdate.image_url
+                        .split("/")
+                        .slice(4)
+                        .join("/");
+                      await handleImageDelete(previousImagePath);
+                      const { data, error } = await supabase
+                        .from("products")
+                        .update({ image_url: null })
+                        .eq("id", editProductId)
+                        .select("*");
+
+                      if (error) {
+                        console.error(
+                          "Error deleting image from product:",
+                          error
+                        );
+                      } else {
+                        setProducts(
+                          products.map((product) =>
+                            product.id === editProductId
+                              ? { ...product, ...data[0] }
+                              : product
+                          )
+                        );
+                      }
+                    }
+                    setDeletingImage(false);
+                  }}
+                  sx={{ marginTop: 2 }}
+                  disabled={deletingImage}
+                >
+                  {deletingImage ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    "Eliminar Imagen"
+                  )}
+                </Button>
+              </Box>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setEditProductImage(e.target.files ? e.target.files[0] : null)
+                }
+                style={{ marginTop: 16 }}
                 disabled={deletingImage}
               />
-            }
-            label="Eliminado"
-          />
-        )}
-    </Box>
+            )}
 
-    <DialogActions>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSaveEdit}
-        startIcon={<SaveIcon />}
-        sx={{
-          backgroundColor: "#1976d2",
-          color: "white",
-          fontWeight: "bold",
-          textTransform: "none",
-          borderRadius: "8px",
-          boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-          "&:hover": {
-            backgroundColor: "#115293",
-            boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
-          },
-          "&:active": {
-            backgroundColor: "#0d3a6a",
-          },
-          "&:focus": {
-            outline: "none",
-            boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
-          },
-        }}
-        disabled={deletingImage}
-      >
-        Guardar
-      </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={resetEditState}
-        startIcon={<CancelIcon />}
-        sx={{
-          backgroundColor: "red",
-          color: "white",
-          fontWeight: "bold",
-          textTransform: "none",
-          borderRadius: "8px",
-          boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
-          "&:hover": {
-            backgroundColor: "darkred",
-            boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
-          },
-          "&:active": {
-            backgroundColor: "firebrick",
-          },
-          "&:focus": {
-            outline: "none",
-            boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
-          },
-        }}
-        disabled={deletingImage}
-      >
-        Cancelar
-      </Button>
-    </DialogActions>
-  </MuiBox>
-</Modal>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="edit-select-category-label">Categoría</InputLabel>
+              <Select
+                labelId="edit-select-category-label"
+                id="edit-select-category"
+                value={editSelectedCategory}
+                label="Categoría"
+                onChange={(e) =>
+                  setEditSelectedCategory(e.target.value as number)
+                }
+                disabled={deletingImage}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="edit-select-subcategory-label">
+                Subcategoría
+              </InputLabel>
+              <Select
+                labelId="edit-select-subcategory-label"
+                id="edit-select-subcategory"
+                value={editSelectedSubcategory}
+                label="Subcategoría"
+                onChange={(e) =>
+                  setEditSelectedSubcategory(e.target.value as number)
+                }
+                disabled={deletingImage}
+              >
+                {subcategories
+                  .filter(
+                    (subcategory) =>
+                      subcategory.category_id === editSelectedCategory
+                  )
+                  .map((subcategory) => (
+                    <MenuItem key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            {editProductId !== null &&
+              products.find((p) => p.id === editProductId)?.isedited && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editProductIsEdited}
+                      onChange={(e) => setEditProductIsEdited(e.target.checked)}
+                      disabled={deletingImage}
+                    />
+                  }
+                  label="Editado"
+                />
+              )}
 
+            {editProductId !== null &&
+              products.find((p) => p.id === editProductId)?.isdeleted && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={
+                        products.find((p) => p.id === editProductId)
+                          ?.isdeleted || false
+                      }
+                      onChange={async (e) => {
+                        const updatedProduct = products.find(
+                          (p) => p.id === editProductId
+                        );
+                        if (updatedProduct) {
+                          updatedProduct.isdeleted = e.target.checked;
+                          const { error } = await supabase
+                            .from("products")
+                            .update({ isdeleted: e.target.checked })
+                            .eq("id", editProductId);
+                          if (error) {
+                            console.error("Error updating product:", error);
+                          } else {
+                            setProducts(
+                              products.map((p) =>
+                                p.id === editProductId ? updatedProduct : p
+                              )
+                            );
+                          }
+                        }
+                      }}
+                      disabled={deletingImage}
+                    />
+                  }
+                  label="Eliminado"
+                />
+              )}
+          </Box>
 
-
-
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSaveEdit}
+              startIcon={<SaveIcon />}
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+                "&:hover": {
+                  backgroundColor: "#115293",
+                  boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                },
+                "&:active": {
+                  backgroundColor: "#0d3a6a",
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                },
+              }}
+              disabled={deletingImage}
+            >
+              Guardar
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={resetEditState}
+              startIcon={<CancelIcon />}
+              sx={{
+                backgroundColor: "red",
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                borderRadius: "8px",
+                boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
+                "&:hover": {
+                  backgroundColor: "darkred",
+                  boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
+                },
+                "&:active": {
+                  backgroundColor: "firebrick",
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                },
+              }}
+              disabled={deletingImage}
+            >
+              Cancelar
+            </Button>
+          </DialogActions>
+        </MuiBox>
+      </Modal>
     </Container>
   );
 };
