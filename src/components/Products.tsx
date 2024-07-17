@@ -1522,7 +1522,7 @@ const Products: React.FC = () => {
                 },
               }}
               disabled={deletingImage}
-            >
+             >
               Cancelar
             </Button>
           </DialogActions>
