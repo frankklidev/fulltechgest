@@ -1,3 +1,4 @@
+
 interface Product {
   id: number;
   name: string;
@@ -9,21 +10,22 @@ interface Product {
   image_url?: string;
 }
 
-export const exportLinksToTxt = (products: Product[]) => {
+export const copyLinksToClipboard = (products: Product[]) => {
   // Extrae los enlaces de los productos
   const links = products.map(product => product.link).filter(link => link);
 
   // Une los enlaces en una sola cadena, separada por dos saltos de línea
   const textContent = links.join('\n\n');
 
-  // Crea un blob con el contenido de texto
-  const blob = new Blob([textContent], { type: 'text/plain' });
-
-  // Crea un enlace para descargar el archivo
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'productos_links.txt';
-
-  // Simula un clic en el enlace para descargar el archivo
-  link.click();
+  // Copia el contenido al portapapeles
+  navigator.clipboard.writeText(textContent).then(
+    () => {
+      console.log('Enlaces copiados al portapapeles');
+      alert('Enlaces copiados al portapapeles');
+    },
+    (err) => {
+      console.error('Error al copiar al portapapeles: ', err);
+    }
+  );
 };
+

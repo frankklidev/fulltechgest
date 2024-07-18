@@ -34,7 +34,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
-import { exportLinksToTxt } from "../utils/exportToExcel";
+
+import { copyLinksToClipboard } from "../utils/exportToExcel";
 
 interface Category {
   id: number;
@@ -315,7 +316,7 @@ const Products: React.FC = () => {
   };
 
   const handleExport = () => {
-    exportLinksToTxt(products);
+    copyLinksToClipboard(products);
   };
 
   const resetEditState = () => {
@@ -559,9 +560,7 @@ const Products: React.FC = () => {
             }}
             disabled={hasPendingChanges}
           >
-            {hasPendingChanges
-              ? "Hay Modificaciones pendientes"
-              : "Exportar Enlaces"}
+            COPIAR ENLACES
           </Button>
 
           <Button
@@ -1522,7 +1521,7 @@ const Products: React.FC = () => {
                 },
               }}
               disabled={deletingImage}
-             >
+            >
               Cancelar
             </Button>
           </DialogActions>
