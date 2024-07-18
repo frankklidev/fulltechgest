@@ -21,7 +21,6 @@ export const copyLinksToClipboard = (products: Product[]) => {
   navigator.clipboard.writeText(textContent).then(
     () => {
       console.log('Enlaces copiados al portapapeles');
-      alert('Enlaces copiados al portapapeles');
     },
     (err) => {
       console.error('Error al copiar al portapapeles: ', err);
