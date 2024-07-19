@@ -802,7 +802,7 @@ const Products: React.FC = () => {
             padding: "4px",
             fontWeight: "bold",
             backgroundColor: "#f5f5f5",
-            width:'20%'
+            width:'15%'
           }}
         >
           Descripción
