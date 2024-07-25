@@ -82,7 +82,7 @@ const Products: React.FC = () => {
   const [productImage, setProductImage] = useState<File | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number>(1);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number>(1);
-  const [selectedBrand, setSelectedBrand] = useState<number>(1);
+
   const [editProductId, setEditProductId] = useState<number | null>(null);
   const [editProductName, setEditProductName] = useState<string>("");
   const [editProductDescription, setEditProductDescription] =
@@ -93,7 +93,7 @@ const Products: React.FC = () => {
   const [editSelectedCategory, setEditSelectedCategory] = useState<number>(1);
   const [editSelectedSubcategory, setEditSelectedSubcategory] =
     useState<number>(1);
-  const [editSelectedBrand, setEditSelectedBrand] = useState<number>(1);
+
   const [open, setOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -106,6 +106,10 @@ const Products: React.FC = () => {
     useState<boolean>(false);
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
   const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
+
+  const [selectedBrand, setSelectedBrand] = useState<number | string>('');
+const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
+
 
   useEffect(() => {
     fetchCategories();
@@ -329,11 +333,12 @@ const Products: React.FC = () => {
     setEditProductLink(product.link);
     setEditSelectedCategory(product.category_id);
     setEditSelectedSubcategory(product.subcategory_id);
-    setEditSelectedBrand(product.brand_id || 1);
+    setEditSelectedBrand(product.brand_id || '');
     setEditProductImage(null); // Reset the image selection when editing a product
     setEditProductIsEdited(product.isedited || true);
     setModalOpen(true);
   };
+  
 
   const handleExport = () => {
     copyLinksToClipboard(products);
@@ -347,7 +352,7 @@ const Products: React.FC = () => {
     setEditProductLink("");
     setEditSelectedCategory(1);
     setEditSelectedSubcategory(1);
-    setEditSelectedBrand(1);
+    setEditSelectedBrand('');
     setEditProductImage(null); // Resetea la imagen aquí
     setEditProductIsEdited(false);
     setModalOpen(false);
@@ -645,21 +650,25 @@ const Products: React.FC = () => {
                 onInputChange={(_event, value) => setProductName(value)}
               />
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel id="select-brand-label">Marca</InputLabel>
-                <Select
-                  labelId="select-brand-label"
-                  id="select-brand"
-                  value={selectedBrand}
-                  label="Marca"
-                  onChange={(e) => setSelectedBrand(e.target.value as number)}
-                >
-                  {brands.map((brand) => (
-                    <MenuItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+  <InputLabel id="select-brand-label">Marca</InputLabel>
+  <Select
+    labelId="select-brand-label"
+    id="select-brand"
+    value={selectedBrand}
+    label="Marca"
+    onChange={(e) => setSelectedBrand(e.target.value)}
+  >
+    <MenuItem value="">
+      <em>Seleccionar Marca</em>
+    </MenuItem>
+    {brands.map((brand) => (
+      <MenuItem key={brand.id} value={brand.id}>
+        {brand.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
 
               <TextField
                 margin="normal"
@@ -1139,22 +1148,27 @@ const Products: React.FC = () => {
               disabled={deletingImage}
             />
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel id="edit-select-brand-label">Marca</InputLabel>
-              <Select
-                labelId="edit-select-brand-label"
-                id="edit-select-brand"
-                value={editSelectedBrand}
-                label="Marca"
-                onChange={(e) => setEditSelectedBrand(e.target.value as number)}
-                disabled={deletingImage}
-              >
-                {brands.map((brand) => (
-                  <MenuItem key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+  <InputLabel id="edit-select-brand-label">Marca</InputLabel>
+  <Select
+    labelId="edit-select-brand-label"
+    id="edit-select-brand"
+    value={editSelectedBrand}
+    label="Marca"
+    onChange={(e) => setEditSelectedBrand(e.target.value)}
+    disabled={deletingImage}
+  >
+    <MenuItem value="">
+      <em>Seleccionar Marca</em>
+    </MenuItem>
+    {brands.map((brand) => (
+      <MenuItem key={brand.id} value={brand.id}>
+        {brand.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+
             <TextField
               margin="normal"
               required
