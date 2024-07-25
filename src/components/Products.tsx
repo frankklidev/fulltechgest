@@ -370,12 +370,9 @@ const Products: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
-    setHasPendingChanges(
-      products.some(
-        (product) => product.isdeleted || product.isedited || !product.link
-      )
-    );
+    setCurrentPage(1);  // Resetear a la primera página cuando el término de búsqueda cambia
   };
+  
 
   const filteredProducts = products.filter((product) => {
     const category = categories.find(
