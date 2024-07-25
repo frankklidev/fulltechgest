@@ -59,6 +59,7 @@ interface Product {
   image_url?: string;
   isedited: boolean;
   isdeleted: boolean;
+  brand?: string; // Agrega la marca
 }
 
 const Products: React.FC = () => {
@@ -97,6 +98,8 @@ const Products: React.FC = () => {
     useState<boolean>(false);
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
   const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
+  const [productBrand, setProductBrand] = useState("");
+  const [editProductBrand, setEditProductBrand] = useState("");
 
   useEffect(() => {
     fetchCategories();
@@ -220,6 +223,7 @@ const Products: React.FC = () => {
           image_url: imageUrl,
           isedited: false,
           isdeleted: false,
+          brand: productBrand,
         },
       ])
       .select("*");
@@ -281,6 +285,7 @@ const Products: React.FC = () => {
         subcategory_id: editSelectedSubcategory,
         image_url: imageUrl,
         isedited: editProductIsEdited,
+        brand: editProductBrand, // Agrega la marca
       })
       .eq("id", editProductId)
       .select("*");
@@ -304,15 +309,16 @@ const Products: React.FC = () => {
       return; // No permitir la edición si el producto está eliminado
     }
     setEditProductId(product.id);
-    setEditProductName(product.name);
-    setEditProductDescription(product.description);
-    setEditProductPrice(product.price);
-    setEditProductLink(product.link);
-    setEditSelectedCategory(product.category_id);
-    setEditSelectedSubcategory(product.subcategory_id);
-    setEditProductImage(null); // Reset the image selection when editing a product
-    setEditProductIsEdited(product.isedited || true); // Set the initial state of the checkbox
-    setModalOpen(true);
+  setEditProductName(product.name);
+  setEditProductDescription(product.description);
+  setEditProductPrice(product.price);
+  setEditProductLink(product.link);
+  setEditSelectedCategory(product.category_id);
+  setEditSelectedSubcategory(product.subcategory_id);
+  setEditProductImage(null); // Reset the image selection when editing a product
+  setEditProductIsEdited(product.isedited || true);
+  setEditProductBrand(product.brand || ""); // Asegúrate de configurar la marca
+  setModalOpen(true);
   };
 
   const handleExport = () => {
@@ -370,9 +376,8 @@ const Products: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value.toLowerCase());
-    setCurrentPage(1);  // Resetear a la primera página cuando el término de búsqueda cambia
+    setCurrentPage(1); // Resetear a la primera página cuando el término de búsqueda cambia
   };
-  
 
   const filteredProducts = products.filter((product) => {
     const category = categories.find(
@@ -624,6 +629,17 @@ const Products: React.FC = () => {
                 )}
                 onInputChange={(_event, value) => setProductName(value)}
               />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="productBrand"
+                label="Marca"
+                name="productBrand"
+                autoComplete="off"
+                value={productBrand}
+                onChange={(e) => setProductBrand(e.target.value)}
+              />
 
               <TextField
                 margin="normal"
@@ -771,299 +787,301 @@ const Products: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : (
-<TableContainer
-  component={Paper}
-  sx={{ overflowX: "auto", width: "100%" }}
->
-  <Table
-    sx={{
-      borderCollapse: "separate",
-      borderSpacing: "0 10px",
-      minWidth: 750,
-      tableLayout: "fixed",
-    }}
-  >
-    <TableHead>
-      <TableRow>
-        <TableCell
-          sx={{
-            padding: "4px",
-            fontWeight: "bold",
-            backgroundColor: "#f5f5f5",
-          }}
-        >
-          Nombre
-        </TableCell>
-        <TableCell
-          sx={{
-            padding: "4px",
-            fontWeight: "bold",
-            backgroundColor: "#f5f5f5",
-            width:'15%'
-          }}
-        >
-          Descripción
-        </TableCell>
-        <TableCell
-          sx={{
-            padding: "4px",
-            fontWeight: "bold",
-            backgroundColor: "#f5f5f5",
-            width:'5%'
-          }}
-        >
-          Precio
-        </TableCell>
-        <TableCell
-          sx={{
-            padding: "4px",
-            fontWeight: "bold",
-            backgroundColor: "#f5f5f5",
-            width: "40%", // Ajusta el tamaño de la columna de Enlace
-          }}
-        >
-          Enlace
-        </TableCell>
-        <TableCell
-          sx={{
-            padding: "4px",
-            fontWeight: "bold",
-            backgroundColor: "#f5f5f5",
-            width:'5%'
-          }}
-        >
-          Acciones
-        </TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {paginatedProducts.map((product) => (
-        <TableRow
-          key={product.id}
-          sx={{
-            backgroundColor: product.isdeleted
-              ? "rgba(255, 0, 0, 0.7)"
-              : !product.link
-              ? "rgba(0, 128, 0, 0.7)"
-              : product.isedited
-              ? "rgba(255, 255, 0, 0.7)"
-              : "inherit",
-            height: "30px",
-            "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.05)",
-            },
-          }}
-        >
-          <TableCell
-            sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
+          <TableContainer
+            component={Paper}
+            sx={{ overflowX: "auto", width: "100%" }}
           >
-            {editProductId === product.id ? (
-              <TextField
-                fullWidth
-                value={editProductName}
-                onChange={(e) => setEditProductName(e.target.value)}
-                margin="normal"
-                disabled={product.isdeleted}
-                sx={{ margin: 0 }}
-              />
-            ) : (
-              product.name
-            )}
-          </TableCell>
-          <TableCell
-            sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
-          >
-            {editProductId === product.id ? (
-              <TextField
-                fullWidth
-                value={editProductDescription}
-                onChange={(e) =>
-                  setEditProductDescription(e.target.value)
-                }
-                margin="normal"
-                disabled={product.isdeleted}
-                sx={{ margin: 0 }}
-              />
-            ) : (
-              product.description
-            )}
-          </TableCell>
-          <TableCell
-            sx={{ padding: "4px", width: "10%", lineHeight: "1" }}
-          >
-            {editProductId === product.id ? (
-              <TextField
-                fullWidth
-                type="number"
-                value={editProductPrice}
-                onChange={(e) =>
-                  setEditProductPrice(parseFloat(e.target.value))
-                }
-                margin="normal"
-                disabled={product.isdeleted}
-                sx={{ margin: 0 }}
-              />
-            ) : (
-              product.price
-            )}
-          </TableCell>
-          <TableCell
-            sx={{
-              padding: "4px",
-              width: "40%", // Ajusta el tamaño de la columna de Enlace
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              lineHeight: "1",
-            }}
-          >
-            {editProductId === product.id ? (
-              <TextField
-                fullWidth
-                value={editProductLink}
-                onChange={(e) => setEditProductLink(e.target.value)}
-                margin="normal"
-                disabled={product.isdeleted}
-                sx={{ margin: 0 }}
-              />
-            ) : (
-              <Tooltip title={product.link}>
-                <a
-                  href={product.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "block",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    width: "100%",
-                  }}
-                >
-                  {product.link}
-                </a>
-              </Tooltip>
-            )}
-          </TableCell>
-          <TableCell
-            align="right"
-            sx={{ padding: "4px", width: "5%", lineHeight: "1" }}
-          >
-            {editProductId === product.id ? (
-              <>
-                <IconButton
-                  onClick={handleSaveEdit}
-                  color="primary"
-                  disabled={product.isdeleted}
-                >
-                  <SaveIcon />
-                </IconButton>
-                <IconButton
-                  onClick={resetEditState}
-                  color="secondary"
-                  disabled={product.isdeleted}
-                >
-                  <CancelIcon />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <IconButton
-                  onClick={() => handleEditProduct(product)}
-                  sx={{ color: "black" }}
-                  disabled={product.isdeleted}
-                >
-                  <EditIcon />
-                </IconButton>
-                {product.isdeleted ? (
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleDeleteProduct(product.id)}
-                      sx={{ mb: 1 }}
+            <Table
+              sx={{
+                borderCollapse: "separate",
+                borderSpacing: "0 10px",
+                minWidth: 750,
+                tableLayout: "fixed",
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      padding: "4px",
+                      fontWeight: "bold",
+                      backgroundColor: "#f5f5f5",
+                    }}
+                  >
+                    Nombre
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      padding: "4px",
+                      fontWeight: "bold",
+                      backgroundColor: "#f5f5f5",
+                      width: "15%",
+                    }}
+                  >
+                    Descripción
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      padding: "4px",
+                      fontWeight: "bold",
+                      backgroundColor: "#f5f5f5",
+                      width: "5%",
+                    }}
+                  >
+                    Precio
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      padding: "4px",
+                      fontWeight: "bold",
+                      backgroundColor: "#f5f5f5",
+                      width: "40%", // Ajusta el tamaño de la columna de Enlace
+                    }}
+                  >
+                    Enlace
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      padding: "4px",
+                      fontWeight: "bold",
+                      backgroundColor: "#f5f5f5",
+                      width: "5%",
+                    }}
+                  >
+                    Acciones
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedProducts.map((product) => (
+                  <TableRow
+                    key={product.id}
+                    sx={{
+                      backgroundColor: product.isdeleted
+                        ? "rgba(255, 0, 0, 0.7)"
+                        : !product.link
+                        ? "rgba(0, 128, 0, 0.7)"
+                        : product.isedited
+                        ? "rgba(255, 255, 0, 0.7)"
+                        : "inherit",
+                      height: "30px",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 0, 0, 0.05)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
                     >
-                      Restaurar Producto
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={async () => {
-                        const { error } = await supabase
-                          .from("products")
-                          .delete()
-                          .eq("id", product.id);
-                        if (error) {
-                          console.error(
-                            "Error deleting product permanently:",
-                            error
-                          );
-                        } else {
-                          setProducts(
-                            products.filter((p) => p.id !== product.id)
-                          );
-                        }
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductName}
+                          onChange={(e) => setEditProductName(e.target.value)}
+                          margin="normal"
+                          disabled={product.isdeleted}
+                          sx={{ margin: 0 }}
+                        />
+                      ) : (
+                        product.name
+                      )}
+                    </TableCell>
+                    <TableCell
+                      sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
+                    >
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductDescription}
+                          onChange={(e) =>
+                            setEditProductDescription(e.target.value)
+                          }
+                          margin="normal"
+                          disabled={product.isdeleted}
+                          sx={{ margin: 0 }}
+                        />
+                      ) : (
+                        product.description
+                      )}
+                    </TableCell>
+                    <TableCell
+                      sx={{ padding: "4px", width: "10%", lineHeight: "1" }}
+                    >
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          type="number"
+                          value={editProductPrice}
+                          onChange={(e) =>
+                            setEditProductPrice(parseFloat(e.target.value))
+                          }
+                          margin="normal"
+                          disabled={product.isdeleted}
+                          sx={{ margin: 0 }}
+                        />
+                      ) : (
+                        product.price
+                      )}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        padding: "4px",
+                        width: "40%", // Ajusta el tamaño de la columna de Enlace
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        lineHeight: "1",
                       }}
                     >
-                      Eliminar para siempre
-                    </Button>
-                  </Box>
-                ) : (
-                  <IconButton
-                    onClick={() => handleDeleteProduct(product.id)}
-                    sx={{ color: "black" }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                )}
-              </>
-            )}
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</TableContainer>
-
+                      {editProductId === product.id ? (
+                        <TextField
+                          fullWidth
+                          value={editProductLink}
+                          onChange={(e) => setEditProductLink(e.target.value)}
+                          margin="normal"
+                          disabled={product.isdeleted}
+                          sx={{ margin: 0 }}
+                        />
+                      ) : (
+                        <Tooltip title={product.link}>
+                          <a
+                            href={product.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "block",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              width: "100%",
+                            }}
+                          >
+                            {product.link}
+                          </a>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ padding: "4px", width: "5%", lineHeight: "1" }}
+                    >
+                      {editProductId === product.id ? (
+                        <>
+                          <IconButton
+                            onClick={handleSaveEdit}
+                            color="primary"
+                            disabled={product.isdeleted}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={resetEditState}
+                            color="secondary"
+                            disabled={product.isdeleted}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <>
+                          <IconButton
+                            onClick={() => handleEditProduct(product)}
+                            sx={{ color: "black" }}
+                            disabled={product.isdeleted}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          {product.isdeleted ? (
+                            <Box
+                              sx={{ display: "flex", flexDirection: "column" }}
+                            >
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleDeleteProduct(product.id)}
+                                sx={{ mb: 1 }}
+                              >
+                                Restaurar Producto
+                              </Button>
+                              <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={async () => {
+                                  const { error } = await supabase
+                                    .from("products")
+                                    .delete()
+                                    .eq("id", product.id);
+                                  if (error) {
+                                    console.error(
+                                      "Error deleting product permanently:",
+                                      error
+                                    );
+                                  } else {
+                                    setProducts(
+                                      products.filter(
+                                        (p) => p.id !== product.id
+                                      )
+                                    );
+                                  }
+                                }}
+                              >
+                                Eliminar para siempre
+                              </Button>
+                            </Box>
+                          ) : (
+                            <IconButton
+                              onClick={() => handleDeleteProduct(product.id)}
+                              sx={{ color: "black" }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          )}
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
         {totalPages > 1 && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Button
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            sx={{
-              mr: 2,
-              backgroundColor: "#1976d2",
-              color: "white",
-              '&:hover': {
-                backgroundColor: "#115293",
-              },
-              '&:disabled': {
-                backgroundColor: "#B0BEC5",
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              sx={{
+                mr: 2,
+                backgroundColor: "#1976d2",
                 color: "white",
-              }
-            }}
-          >
-            Ir al Principio
-          </Button>
-          <Button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Anterior
-          </Button>
-          
-          <Box sx={{ mx: 2, display: "flex", alignItems: "center" }}>
-            Página {currentPage} de {totalPages}
+                "&:hover": {
+                  backgroundColor: "#115293",
+                },
+                "&:disabled": {
+                  backgroundColor: "#B0BEC5",
+                  color: "white",
+                },
+              }}
+            >
+              Ir al Principio
+            </Button>
+            <Button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </Button>
+
+            <Box sx={{ mx: 2, display: "flex", alignItems: "center" }}>
+              Página {currentPage} de {totalPages}
+            </Box>
+            <Button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente
+            </Button>
           </Box>
-          <Button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Siguiente
-          </Button>
-        </Box>
-        
         )}
       </Box>
       <Modal
@@ -1099,6 +1117,17 @@ const Products: React.FC = () => {
               value={editProductName}
               onChange={(e) => setEditProductName(e.target.value)}
               disabled={deletingImage}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editProductBrand"
+              label="Marca"
+              name="editProductBrand"
+              autoComplete="off"
+              value={editProductBrand}
+              onChange={(e) => setEditProductBrand(e.target.value)}
             />
             <TextField
               margin="normal"
