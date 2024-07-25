@@ -30,6 +30,7 @@ interface SpecialOffer {
   name: string;
   description: string;
   price: string;
+  start_date: string;
   expiry_date: string;
   image_url?: string;
   is_active: boolean;
@@ -40,13 +41,15 @@ const SpecialOffers: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string>("");
-  const [expiry_date, setExpiryDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [expiryDate, setExpiryDate] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [isActive, setIsActive] = useState<boolean>(true);
   const [editOfferId, setEditOfferId] = useState<number | null>(null);
   const [editName, setEditName] = useState<string>("");
   const [editDescription, setEditDescription] = useState<string>("");
   const [editPrice, setEditPrice] = useState<string>("");
+  const [editStartDate, setEditStartDate] = useState<string>("");
   const [editExpiryDate, setEditExpiryDate] = useState<string>("");
   const [editImage, setEditImage] = useState<File | null>(null);
   const [editIsActive, setEditIsActive] = useState<boolean>(true);
@@ -89,12 +92,18 @@ const SpecialOffers: React.FC = () => {
     }
   };
 
-  const ensureNoActiveOffer = async () => {
-    const { count } = await supabase
+  const ensureNoActiveOffer = async (currentOfferId: number | null = null) => {
+    const { data: activeOffers } = await supabase
       .from("special_offers")
-      .select("id", { count: "exact" })
+      .select("id")
       .eq("is_active", true);
-    return count === 0;
+
+    if (currentOfferId) {
+      // Excluir la oferta actual si está en modo de edición
+      return activeOffers?.filter((offer) => offer.id !== currentOfferId).length === 0;
+    }
+
+    return activeOffers?.length === 0;
   };
 
   const handleAddOffer = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -125,7 +134,8 @@ const SpecialOffers: React.FC = () => {
           name,
           description,
           price,
-          expiry_date,
+          start_date: startDate,
+          expiry_date: expiryDate,
           image_url: imageUrl,
           is_active: isActive,
         },
@@ -139,6 +149,7 @@ const SpecialOffers: React.FC = () => {
       setName("");
       setDescription("");
       setPrice("");
+      setStartDate("");
       setExpiryDate("");
       setImage(null);
       setIsActive(true);
@@ -151,7 +162,7 @@ const SpecialOffers: React.FC = () => {
     setLoading(true);
 
     if (editIsActive) {
-      const noActiveOffer = await ensureNoActiveOffer();
+      const noActiveOffer = await ensureNoActiveOffer(editOfferId);
       if (!noActiveOffer) {
         alert("Ya hay una oferta activa. Desactiva la oferta actual antes de activar esta oferta.");
         setLoading(false);
@@ -187,6 +198,7 @@ const SpecialOffers: React.FC = () => {
         name: editName,
         description: editDescription,
         price: editPrice,
+        start_date: editStartDate,
         expiry_date: editExpiryDate,
         image_url: imageUrl,
         is_active: editIsActive,
@@ -213,7 +225,8 @@ const SpecialOffers: React.FC = () => {
     setEditName(offer.name);
     setEditDescription(offer.description);
     setEditPrice(offer.price);
-    setEditExpiryDate(offer.expiry_date);
+    setEditStartDate(offer.start_date.split('T')[0]); // Convertir la fecha al formato YYYY-MM-DD
+    setEditExpiryDate(offer.expiry_date.split('T')[0]); // Convertir la fecha al formato YYYY-MM-DD
     setEditImage(null);
     setEditIsActive(offer.is_active);
     setModalOpen(true);
@@ -224,7 +237,8 @@ const SpecialOffers: React.FC = () => {
     setEditName("");
     setEditDescription("");
     setEditPrice("");
-    setEditExpiryDate("");
+    setEditStartDate(""); // Reiniciar el estado de la fecha de inicio
+    setEditExpiryDate(""); // Reiniciar el estado de la fecha de expiración
     setEditImage(null);
     setEditIsActive(true);
     setModalOpen(false);
@@ -338,13 +352,26 @@ const SpecialOffers: React.FC = () => {
               margin="normal"
               required
               fullWidth
+              id="start_date"
+              label="Fecha de Inicio"
+              name="start_date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              autoComplete="off"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
               id="expiry_date"
               label="Fecha de Expiración"
               name="expiry_date"
               type="date"
               InputLabelProps={{ shrink: true }}
               autoComplete="off"
-              value={expiry_date}
+              value={expiryDate}
               onChange={(e) => setExpiryDate(e.target.value)}
             />
             <input
@@ -462,6 +489,15 @@ const SpecialOffers: React.FC = () => {
                   backgroundColor: "#f5f5f5",
                 }}
               >
+                Fecha de Inicio
+              </TableCell>
+              <TableCell
+                sx={{
+                  padding: "8px",
+                  fontWeight: "bold",
+                  backgroundColor: "#f5f5f5",
+                }}
+              >
                 Fecha de Expiración
               </TableCell>
               <TableCell
@@ -502,6 +538,7 @@ const SpecialOffers: React.FC = () => {
                 <TableCell sx={{ padding: "8px" }}>{offer.name}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>{offer.description}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>{offer.price}</TableCell>
+                <TableCell sx={{ padding: "8px" }}>{offer.start_date}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>{offer.expiry_date}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>
                   {offer.image_url && (
@@ -594,9 +631,22 @@ const SpecialOffers: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              id="editExpiry_date"
+              id="editStartDate"
+              label="Fecha de Inicio"
+              name="editStartDate"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              autoComplete="off"
+              value={editStartDate}
+              onChange={(e) => setEditStartDate(e.target.value)}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="editExpiryDate"
               label="Fecha de Expiración"
-              name="editExpiry_date"
+              name="editExpiryDate"
               type="date"
               InputLabelProps={{ shrink: true }}
               autoComplete="off"
