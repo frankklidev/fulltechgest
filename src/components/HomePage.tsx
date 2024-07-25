@@ -127,6 +127,29 @@ const HomePage: React.FC = () => {
             </CardActions>
           </Card>
         </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', minHeight: '200px', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s', '&:hover': { transform: 'scale(1.05)' } }}>
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                Marcas
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Gestiona las marcas de productos.
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => handleNavigate('/brands')}
+                sx={{ marginLeft: 'auto' }}
+              >
+                Ir a Marcas
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
       </Grid>
     </Container>
   );

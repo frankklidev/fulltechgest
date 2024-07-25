@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login';
@@ -7,12 +6,13 @@ import Subcategories from './components/Subcategories';
 import Products from './components/Products';
 import HomePage from './components/HomePage';
 import SpecialOffers from './components/SpecialOffers';
+import Testimonials from './components/Testimonial';
+import Brands from './components/Brands';
 
 import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
 import { AuthProvider } from './components/context/AuthContext';
 import { Box } from '@mui/material';
-import Testimonials from './components/Testimonial';
 
 const App: React.FC = () => {
   return (
@@ -67,6 +67,14 @@ const App: React.FC = () => {
               element={
                 <PrivateRoute>
                   <Testimonials />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/brands"
+              element={
+                <PrivateRoute>
+                  <Brands />
                 </PrivateRoute>
               }
             />
