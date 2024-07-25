@@ -48,6 +48,11 @@ interface Subcategory {
   category_id: number;
 }
 
+interface Brand {
+  id: number;
+  name: string;
+}
+
 interface Product {
   id: number;
   name: string;
@@ -59,7 +64,7 @@ interface Product {
   image_url?: string;
   isedited: boolean;
   isdeleted: boolean;
-  brand?: string; // Agrega la marca
+  brand_id?: number;
 }
 
 const Products: React.FC = () => {
@@ -68,6 +73,7 @@ const Products: React.FC = () => {
   const [filteredSubcategories, setFilteredSubcategories] = useState<
     Subcategory[]
   >([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productName, setProductName] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
@@ -76,6 +82,7 @@ const Products: React.FC = () => {
   const [productImage, setProductImage] = useState<File | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number>(1);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number>(1);
+  const [selectedBrand, setSelectedBrand] = useState<number>(1);
   const [editProductId, setEditProductId] = useState<number | null>(null);
   const [editProductName, setEditProductName] = useState<string>("");
   const [editProductDescription, setEditProductDescription] =
@@ -86,6 +93,7 @@ const Products: React.FC = () => {
   const [editSelectedCategory, setEditSelectedCategory] = useState<number>(1);
   const [editSelectedSubcategory, setEditSelectedSubcategory] =
     useState<number>(1);
+  const [editSelectedBrand, setEditSelectedBrand] = useState<number>(1);
   const [open, setOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -98,12 +106,11 @@ const Products: React.FC = () => {
     useState<boolean>(false);
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
   const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
-  const [productBrand, setProductBrand] = useState("");
-  const [editProductBrand, setEditProductBrand] = useState("");
 
   useEffect(() => {
     fetchCategories();
     fetchSubcategories();
+    fetchBrands();
     fetchProducts();
   }, []);
 
@@ -149,6 +156,12 @@ const Products: React.FC = () => {
     const { data, error } = await supabase.from("subcategories").select("*");
     if (error) console.error("Error fetching subcategories:", error);
     else setSubcategories(data || []);
+  };
+
+  const fetchBrands = async () => {
+    const { data, error } = await supabase.from("brand").select("*");
+    if (error) console.error("Error fetching brands:", error);
+    else setBrands(data || []);
   };
 
   const fetchProducts = async () => {
@@ -223,7 +236,7 @@ const Products: React.FC = () => {
           image_url: imageUrl,
           isedited: false,
           isdeleted: false,
-          brand: productBrand,
+          brand_id: selectedBrand,
         },
       ])
       .select("*");
@@ -239,6 +252,7 @@ const Products: React.FC = () => {
       setSelectedCategory(1);
       setSelectedSubcategory(1);
       setProductImage(null);
+      setSelectedBrand(1);
       setOpen(false);
       setEditProductIsEdited(false);
     }
@@ -285,7 +299,7 @@ const Products: React.FC = () => {
         subcategory_id: editSelectedSubcategory,
         image_url: imageUrl,
         isedited: editProductIsEdited,
-        brand: editProductBrand, // Agrega la marca
+        brand_id: editSelectedBrand,
       })
       .eq("id", editProductId)
       .select("*");
@@ -309,16 +323,16 @@ const Products: React.FC = () => {
       return; // No permitir la edición si el producto está eliminado
     }
     setEditProductId(product.id);
-  setEditProductName(product.name);
-  setEditProductDescription(product.description);
-  setEditProductPrice(product.price);
-  setEditProductLink(product.link);
-  setEditSelectedCategory(product.category_id);
-  setEditSelectedSubcategory(product.subcategory_id);
-  setEditProductImage(null); // Reset the image selection when editing a product
-  setEditProductIsEdited(product.isedited || true);
-  setEditProductBrand(product.brand || ""); // Asegúrate de configurar la marca
-  setModalOpen(true);
+    setEditProductName(product.name);
+    setEditProductDescription(product.description);
+    setEditProductPrice(product.price);
+    setEditProductLink(product.link);
+    setEditSelectedCategory(product.category_id);
+    setEditSelectedSubcategory(product.subcategory_id);
+    setEditSelectedBrand(product.brand_id || 1);
+    setEditProductImage(null); // Reset the image selection when editing a product
+    setEditProductIsEdited(product.isedited || true);
+    setModalOpen(true);
   };
 
   const handleExport = () => {
@@ -333,6 +347,7 @@ const Products: React.FC = () => {
     setEditProductLink("");
     setEditSelectedCategory(1);
     setEditSelectedSubcategory(1);
+    setEditSelectedBrand(1);
     setEditProductImage(null); // Resetea la imagen aquí
     setEditProductIsEdited(false);
     setModalOpen(false);
@@ -629,17 +644,22 @@ const Products: React.FC = () => {
                 )}
                 onInputChange={(_event, value) => setProductName(value)}
               />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="productBrand"
-                label="Marca"
-                name="productBrand"
-                autoComplete="off"
-                value={productBrand}
-                onChange={(e) => setProductBrand(e.target.value)}
-              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel id="select-brand-label">Marca</InputLabel>
+                <Select
+                  labelId="select-brand-label"
+                  id="select-brand"
+                  value={selectedBrand}
+                  label="Marca"
+                  onChange={(e) => setSelectedBrand(e.target.value as number)}
+                >
+                  {brands.map((brand) => (
+                    <MenuItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <TextField
                 margin="normal"
@@ -1118,17 +1138,23 @@ const Products: React.FC = () => {
               onChange={(e) => setEditProductName(e.target.value)}
               disabled={deletingImage}
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="editProductBrand"
-              label="Marca"
-              name="editProductBrand"
-              autoComplete="off"
-              value={editProductBrand}
-              onChange={(e) => setEditProductBrand(e.target.value)}
-            />
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel id="edit-select-brand-label">Marca</InputLabel>
+              <Select
+                labelId="edit-select-brand-label"
+                id="edit-select-brand"
+                value={editSelectedBrand}
+                label="Marca"
+                onChange={(e) => setEditSelectedBrand(e.target.value as number)}
+                disabled={deletingImage}
+              >
+                {brands.map((brand) => (
+                  <MenuItem key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               margin="normal"
               required
