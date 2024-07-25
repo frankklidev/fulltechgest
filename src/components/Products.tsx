@@ -1032,21 +1032,41 @@ const Products: React.FC = () => {
         {totalPages > 1 && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Anterior
-            </Button>
-            <Box sx={{ mx: 2, display: "flex", alignItems: "center" }}>
-              Página {currentPage} de {totalPages}
-            </Box>
-            <Button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Siguiente
-            </Button>
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+            sx={{
+              mr: 2,
+              backgroundColor: "#1976d2",
+              color: "white",
+              '&:hover': {
+                backgroundColor: "#115293",
+              },
+              '&:disabled': {
+                backgroundColor: "#B0BEC5",
+                color: "white",
+              }
+            }}
+          >
+            Ir al Principio
+          </Button>
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Anterior
+          </Button>
+          
+          <Box sx={{ mx: 2, display: "flex", alignItems: "center" }}>
+            Página {currentPage} de {totalPages}
           </Box>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente
+          </Button>
+        </Box>
+        
         )}
       </Box>
       <Modal
