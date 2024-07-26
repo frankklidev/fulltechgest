@@ -266,21 +266,16 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
   const handleSaveEdit = async () => {
     setLoading(true);
     let imageUrl = "";
-    let imagePath: string | null = null;
-    const currentProduct = products.find(
-      (product) => product.id === editProductId
-    );
-
+    let imagePath = null;
+    const currentProduct = products.find((product) => product.id === editProductId);
+  
     if (editProductImage) {
       const imageExists = await checkImageExists(editProductImage.name);
       if (imageExists) {
         imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${editProductImage.name}`;
       } else {
         if (currentProduct?.image_url) {
-          const previousImagePath = currentProduct.image_url
-            .split("/")
-            .slice(4)
-            .join("/");
+          const previousImagePath = currentProduct.image_url.split("/").slice(4).join("/");
           await handleImageDelete(previousImagePath);
         }
         imagePath = await handleImageUpload(editProductImage);
@@ -291,36 +286,32 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
     } else {
       imageUrl = currentProduct?.image_url || "";
     }
-
-    const { data, error } = await supabase
-      .from("products")
-      .update({
-        name: editProductName,
-        description: editProductDescription,
-        price: editProductPrice,
-        link: editProductLink,
-        category_id: editSelectedCategory,
-        subcategory_id: editSelectedSubcategory,
-        image_url: imageUrl,
-        isedited: editProductIsEdited,
-        brand_id: editSelectedBrand,
-      })
-      .eq("id", editProductId)
-      .select("*");
-
+  
+    const updateData = {
+      name: editProductName,
+      description: editProductDescription,
+      price: editProductPrice,
+      link: editProductLink,
+      category_id: Number(editSelectedCategory) || null,
+      subcategory_id: Number(editSelectedSubcategory) || null,
+      image_url: imageUrl,
+      isedited: editProductIsEdited,
+      brand_id: Number(editSelectedBrand) || null, // Ensure this is either a valid number or null
+    };
+  
+    const { data, error } = await supabase.from("products").update(updateData).eq("id", editProductId).select("*");
+  
     if (error) {
       console.error("Error updating product:", error);
+      alert("Error al guardar los cambios: " + error.message);
     } else if (data && data.length > 0) {
-      setProducts(
-        products.map((product) =>
-          product.id === editProductId ? { ...product, ...data[0] } : product
-        )
-      );
+      setProducts(products.map((product) => (product.id === editProductId ? { ...product, ...data[0] } : product)));
       resetEditState();
       setModalOpen(false);
     }
     setLoading(false);
   };
+  
 
   const handleEditProduct = (product: Product) => {
     if (product.isdeleted) {
