@@ -37,6 +37,17 @@ import { Box as MuiBox } from "@mui/material";
 
 import { copyLinksToClipboard } from "../utils/exportToExcel";
 
+import styled from "styled-components";
+
+const FileInput = styled.input`
+  margin-top: 16px;
+  width: auto;
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+
 interface Category {
   id: number;
   name: string;
@@ -107,9 +118,10 @@ const Products: React.FC = () => {
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
   const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
 
-  const [selectedBrand, setSelectedBrand] = useState<number | string>('');
-const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
-
+  const [selectedBrand, setSelectedBrand] = useState<number | string>("");
+  const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>(
+    ""
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -267,15 +279,20 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
     setLoading(true);
     let imageUrl = "";
     let imagePath = null;
-    const currentProduct = products.find((product) => product.id === editProductId);
-  
+    const currentProduct = products.find(
+      (product) => product.id === editProductId
+    );
+
     if (editProductImage) {
       const imageExists = await checkImageExists(editProductImage.name);
       if (imageExists) {
         imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${editProductImage.name}`;
       } else {
         if (currentProduct?.image_url) {
-          const previousImagePath = currentProduct.image_url.split("/").slice(4).join("/");
+          const previousImagePath = currentProduct.image_url
+            .split("/")
+            .slice(4)
+            .join("/");
           await handleImageDelete(previousImagePath);
         }
         imagePath = await handleImageUpload(editProductImage);
@@ -286,7 +303,7 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
     } else {
       imageUrl = currentProduct?.image_url || "";
     }
-  
+
     const updateData = {
       name: editProductName,
       description: editProductDescription,
@@ -298,20 +315,27 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
       isedited: editProductIsEdited,
       brand_id: Number(editSelectedBrand) || null, // Ensure this is either a valid number or null
     };
-  
-    const { data, error } = await supabase.from("products").update(updateData).eq("id", editProductId).select("*");
-  
+
+    const { data, error } = await supabase
+      .from("products")
+      .update(updateData)
+      .eq("id", editProductId)
+      .select("*");
+
     if (error) {
       console.error("Error updating product:", error);
       alert("Error al guardar los cambios: " + error.message);
     } else if (data && data.length > 0) {
-      setProducts(products.map((product) => (product.id === editProductId ? { ...product, ...data[0] } : product)));
+      setProducts(
+        products.map((product) =>
+          product.id === editProductId ? { ...product, ...data[0] } : product
+        )
+      );
       resetEditState();
       setModalOpen(false);
     }
     setLoading(false);
   };
-  
 
   const handleEditProduct = (product: Product) => {
     if (product.isdeleted) {
@@ -324,12 +348,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
     setEditProductLink(product.link);
     setEditSelectedCategory(product.category_id);
     setEditSelectedSubcategory(product.subcategory_id);
-    setEditSelectedBrand(product.brand_id || '');
+    setEditSelectedBrand(product.brand_id || "");
     setEditProductImage(null); // Reset the image selection when editing a product
     setEditProductIsEdited(product.isedited || true);
     setModalOpen(true);
   };
-  
 
   const handleExport = () => {
     copyLinksToClipboard(products);
@@ -343,7 +366,7 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
     setEditProductLink("");
     setEditSelectedCategory(1);
     setEditSelectedSubcategory(1);
-    setEditSelectedBrand('');
+    setEditSelectedBrand("");
     setEditProductImage(null); // Resetea la imagen aquí
     setEditProductIsEdited(false);
     setModalOpen(false);
@@ -459,6 +482,10 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
         flexDirection: "column",
         paddingLeft: 0, // Eliminar padding izquierdo
         paddingRight: 0, // Eliminar padding derecho
+        "@media (max-width: 600px)": {
+          paddingLeft: 2,
+          paddingRight: 2,
+        },
       }}
     >
       <Backdrop open={loading} style={{ zIndex: 1500 }}>
@@ -481,6 +508,10 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
             display: "flex",
             justifyContent: "space-between",
             mb: 2,
+            "@media (max-width: 600px)": {
+              flexDirection: "column",
+              alignItems: "center",
+            },
           }}
         >
           <TextField
@@ -515,6 +546,9 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               },
               "& .MuiOutlinedInput-input": {
                 padding: "10px 14px",
+              },
+              "@media (max-width: 600px)": {
+                width: "100%",
               },
             }}
           />
@@ -570,6 +604,10 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 outline: "none",
                 boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
               },
+              "@media (max-width: 600px)": {
+                width: "100%",
+                marginBottom: 2,
+              },
             }}
             disabled={hasPendingChanges}
           >
@@ -599,6 +637,9 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               "&:focus": {
                 outline: "none",
                 boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+              },
+              "@media (max-width: 600px)": {
+                width: "100%",
               },
             }}
           >
@@ -636,30 +677,47 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                     autoFocus
                     value={productName}
                     onChange={handleInputChange}
+                    sx={{
+                      "@media (max-width: 600px)": {
+                        width: "100%",
+                      },
+                    }}
                   />
                 )}
                 onInputChange={(_event, value) => setProductName(value)}
               />
               <FormControl fullWidth sx={{ mt: 2 }}>
-  <InputLabel id="select-brand-label">Marca</InputLabel>
-  <Select
-    labelId="select-brand-label"
-    id="select-brand"
-    value={selectedBrand}
-    label="Marca"
-    onChange={(e) => setSelectedBrand(e.target.value)}
-  >
-    <MenuItem value="">
-      <em>Seleccionar Marca</em>
-    </MenuItem>
-    {brands.map((brand) => (
-      <MenuItem key={brand.id} value={brand.id}>
-        {brand.name}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-
+                <InputLabel id="select-brand-label">Marca</InputLabel>
+                <Select
+                  labelId="select-brand-label"
+                  id="select-brand"
+                  value={selectedBrand}
+                  label="Marca"
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  sx={{
+                    "@media (max-width: 600px)": {
+                      width: "100%",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 200, // Ajusta esta altura según sea necesario
+                        width: 250,
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Seleccionar Marca</em>
+                  </MenuItem>
+                  {brands.map((brand) => (
+                    <MenuItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <TextField
                 margin="normal"
@@ -671,6 +729,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 autoComplete="off"
                 value={productDescription}
                 onChange={(e) => setProductDescription(e.target.value)}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
               />
               <TextField
                 margin="normal"
@@ -683,6 +746,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 autoComplete="off"
                 value={productPrice}
                 onChange={(e) => setProductPrice(parseFloat(e.target.value))}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
               />
               <TextField
                 margin="normal"
@@ -694,6 +762,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 autoComplete="off"
                 value={productLink}
                 onChange={(e) => setProductLink(e.target.value)}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
               />
               <input
                 type="file"
@@ -713,6 +786,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   onChange={(e) =>
                     setSelectedCategory(e.target.value as number)
                   }
+                  sx={{
+                    "@media (max-width: 600px)": {
+                      width: "100%",
+                    },
+                  }}
                 >
                   {categories.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
@@ -733,6 +811,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   onChange={(e) =>
                     setSelectedSubcategory(e.target.value as number)
                   }
+                  sx={{
+                    "@media (max-width: 600px)": {
+                      width: "100%",
+                    },
+                  }}
                 >
                   {filteredSubcategories.map((subcategory) => (
                     <MenuItem key={subcategory.id} value={subcategory.id}>
@@ -809,7 +892,14 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
         ) : (
           <TableContainer
             component={Paper}
-            sx={{ overflowX: "auto", width: "100%" }}
+            sx={{
+              overflowX: "auto",
+              width: "100%",
+              "@media (max-width: 600px)": {
+                maxWidth: "100vw",
+                overflowX: "scroll",
+              },
+            }}
           >
             <Table
               sx={{
@@ -817,6 +907,20 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 borderSpacing: "0 10px",
                 minWidth: 750,
                 tableLayout: "fixed",
+                "@media (max-width: 600px)": {
+                  minWidth: "auto",
+                  "& thead th": {
+                    padding: "8px 4px",
+                    fontSize: "12px",
+                    "& .header-text": {
+                      display: "none",
+                    },
+                  },
+                  "& tbody td": {
+                    padding: "8px 4px",
+                    fontSize: "12px",
+                  },
+                },
               }}
             >
               <TableHead>
@@ -826,9 +930,13 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                       padding: "4px",
                       fontWeight: "bold",
                       backgroundColor: "#f5f5f5",
+                      "@media (max-width: 600px)": {
+                        fontSize: "12px",
+                        padding: "8px 4px",
+                      },
                     }}
                   >
-                    Nombre
+                    <span className="header-text">Nombre</span>
                   </TableCell>
                   <TableCell
                     sx={{
@@ -836,9 +944,13 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                       fontWeight: "bold",
                       backgroundColor: "#f5f5f5",
                       width: "15%",
+                      "@media (max-width: 600px)": {
+                        fontSize: "12px",
+                        padding: "8px 4px",
+                      },
                     }}
                   >
-                    Descripción
+                    <span className="header-text">Descripción</span>
                   </TableCell>
                   <TableCell
                     sx={{
@@ -846,19 +958,27 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                       fontWeight: "bold",
                       backgroundColor: "#f5f5f5",
                       width: "5%",
+                      "@media (max-width: 600px)": {
+                        fontSize: "12px",
+                        padding: "8px 4px",
+                      },
                     }}
                   >
-                    Precio
+                    <span className="header-text">Precio</span>
                   </TableCell>
                   <TableCell
                     sx={{
                       padding: "4px",
                       fontWeight: "bold",
                       backgroundColor: "#f5f5f5",
-                      width: "40%", // Ajusta el tamaño de la columna de Enlace
+                      width: "40%",
+                      "@media (max-width: 600px)": {
+                        fontSize: "12px",
+                        padding: "8px 4px",
+                      },
                     }}
                   >
-                    Enlace
+                    <span className="header-text">Enlace</span>
                   </TableCell>
                   <TableCell
                     sx={{
@@ -866,9 +986,13 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                       fontWeight: "bold",
                       backgroundColor: "#f5f5f5",
                       width: "5%",
+                      "@media (max-width: 600px)": {
+                        fontSize: "12px",
+                        padding: "8px 4px",
+                      },
                     }}
                   >
-                    Acciones
+                    <span className="header-text">Acciones</span>
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -891,7 +1015,15 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                     }}
                   >
                     <TableCell
-                      sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
+                      sx={{
+                        padding: "4px",
+                        width: "15%",
+                        lineHeight: "1",
+                        "@media (max-width: 600px)": {
+                          fontSize: "12px",
+                          padding: "8px 4px",
+                        },
+                      }}
                     >
                       {editProductId === product.id ? (
                         <TextField
@@ -900,14 +1032,27 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                           onChange={(e) => setEditProductName(e.target.value)}
                           margin="normal"
                           disabled={product.isdeleted}
-                          sx={{ margin: 0 }}
+                          sx={{
+                            margin: 0,
+                            "@media (max-width: 600px)": {
+                              fontSize: "12px",
+                            },
+                          }}
                         />
                       ) : (
                         product.name
                       )}
                     </TableCell>
                     <TableCell
-                      sx={{ padding: "4px", width: "15%", lineHeight: "1" }}
+                      sx={{
+                        padding: "4px",
+                        width: "15%",
+                        lineHeight: "1",
+                        "@media (max-width: 600px)": {
+                          fontSize: "12px",
+                          padding: "8px 4px",
+                        },
+                      }}
                     >
                       {editProductId === product.id ? (
                         <TextField
@@ -918,14 +1063,27 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                           }
                           margin="normal"
                           disabled={product.isdeleted}
-                          sx={{ margin: 0 }}
+                          sx={{
+                            margin: 0,
+                            "@media (max-width: 600px)": {
+                              fontSize: "12px",
+                            },
+                          }}
                         />
                       ) : (
                         product.description
                       )}
                     </TableCell>
                     <TableCell
-                      sx={{ padding: "4px", width: "10%", lineHeight: "1" }}
+                      sx={{
+                        padding: "4px",
+                        width: "10%",
+                        lineHeight: "1",
+                        "@media (max-width: 600px)": {
+                          fontSize: "12px",
+                          padding: "8px 4px",
+                        },
+                      }}
                     >
                       {editProductId === product.id ? (
                         <TextField
@@ -937,7 +1095,12 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                           }
                           margin="normal"
                           disabled={product.isdeleted}
-                          sx={{ margin: 0 }}
+                          sx={{
+                            margin: 0,
+                            "@media (max-width: 600px)": {
+                              fontSize: "12px",
+                            },
+                          }}
                         />
                       ) : (
                         product.price
@@ -946,11 +1109,15 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                     <TableCell
                       sx={{
                         padding: "4px",
-                        width: "40%", // Ajusta el tamaño de la columna de Enlace
+                        width: "40%",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         lineHeight: "1",
+                        "@media (max-width: 600px)": {
+                          fontSize: "12px",
+                          padding: "8px 4px",
+                        },
                       }}
                     >
                       {editProductId === product.id ? (
@@ -960,7 +1127,12 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                           onChange={(e) => setEditProductLink(e.target.value)}
                           margin="normal"
                           disabled={product.isdeleted}
-                          sx={{ margin: 0 }}
+                          sx={{
+                            margin: 0,
+                            "@media (max-width: 600px)": {
+                              fontSize: "12px",
+                            },
+                          }}
                         />
                       ) : (
                         <Tooltip title={product.link}>
@@ -983,7 +1155,15 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                     </TableCell>
                     <TableCell
                       align="right"
-                      sx={{ padding: "4px", width: "5%", lineHeight: "1" }}
+                      sx={{
+                        padding: "4px",
+                        width: "5%",
+                        lineHeight: "1",
+                        "@media (max-width: 600px)": {
+                          fontSize: "12px",
+                          padding: "8px 4px",
+                        },
+                      }}
                     >
                       {editProductId === product.id ? (
                         <>
@@ -1081,6 +1261,9 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   backgroundColor: "#B0BEC5",
                   color: "white",
                 },
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
               }}
             >
               Ir al Principio
@@ -1088,16 +1271,38 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
             <Button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             >
               Anterior
             </Button>
 
-            <Box sx={{ mx: 2, display: "flex", alignItems: "center" }}>
+            <Box
+              sx={{
+                mx: 2,
+                display: "flex",
+                alignItems: "center",
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                  textAlign: "center",
+                  mx: 0,
+                  mt: 2,
+                },
+              }}
+            >
               Página {currentPage} de {totalPages}
             </Box>
             <Button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             >
               Siguiente
             </Button>
@@ -1117,10 +1322,16 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 400,
+            maxHeight: "90vh",
+            overflowY: "auto",
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
+            "@media (max-width: 600px)": {
+              width: "90%",
+              p: 2,
+            },
           }}
         >
           <h2 id="edit-product-modal-title">Editar Producto</h2>
@@ -1137,28 +1348,45 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               value={editProductName}
               onChange={(e) => setEditProductName(e.target.value)}
               disabled={deletingImage}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             />
             <FormControl fullWidth sx={{ mt: 2 }}>
-  <InputLabel id="edit-select-brand-label">Marca</InputLabel>
-  <Select
-    labelId="edit-select-brand-label"
-    id="edit-select-brand"
-    value={editSelectedBrand}
-    label="Marca"
-    onChange={(e) => setEditSelectedBrand(e.target.value)}
-    disabled={deletingImage}
-  >
-    <MenuItem value="">
-      <em>Seleccionar Marca</em>
-    </MenuItem>
-    {brands.map((brand) => (
-      <MenuItem key={brand.id} value={brand.id}>
-        {brand.name}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-
+              <InputLabel id="edit-select-brand-label">Marca</InputLabel>
+              <Select
+                labelId="edit-select-brand-label"
+                id="edit-select-brand"
+                value={editSelectedBrand}
+                label="Marca"
+                onChange={(e) => setEditSelectedBrand(e.target.value)}
+                disabled={deletingImage}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 200, // Ajusta esta altura según sea necesario
+                      width: 250,
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">
+                  <em>Seleccionar Marca</em>
+                </MenuItem>
+                {brands.map((brand) => (
+                  <MenuItem key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <TextField
               margin="normal"
@@ -1171,6 +1399,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               value={editProductDescription}
               onChange={(e) => setEditProductDescription(e.target.value)}
               disabled={deletingImage}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             />
             <TextField
               margin="normal"
@@ -1184,6 +1417,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               value={editProductPrice}
               onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
               disabled={deletingImage}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             />
             <TextField
               margin="normal"
@@ -1196,6 +1434,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
               value={editProductLink}
               onChange={(e) => setEditProductLink(e.target.value)}
               disabled={deletingImage}
+              sx={{
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
+              }}
             />
 
             {editProductId !== null &&
@@ -1268,13 +1511,12 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 </Button>
               </Box>
             ) : (
-              <input
+              <FileInput
                 type="file"
                 accept="image/*"
                 onChange={(e) =>
                   setEditProductImage(e.target.files ? e.target.files[0] : null)
                 }
-                style={{ marginTop: 16 }}
                 disabled={deletingImage}
               />
             )}
@@ -1290,6 +1532,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   setEditSelectedCategory(e.target.value as number)
                 }
                 disabled={deletingImage}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
               >
                 {categories.map((category) => (
                   <MenuItem key={category.id} value={category.id}>
@@ -1311,6 +1558,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   setEditSelectedSubcategory(e.target.value as number)
                 }
                 disabled={deletingImage}
+                sx={{
+                  "@media (max-width: 600px)": {
+                    width: "100%",
+                  },
+                }}
               >
                 {subcategories
                   .filter(
@@ -1332,6 +1584,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                       checked={editProductIsEdited}
                       onChange={(e) => setEditProductIsEdited(e.target.checked)}
                       disabled={deletingImage}
+                      sx={{
+                        "@media (max-width: 600px)": {
+                          width: "100%",
+                        },
+                      }}
                     />
                   }
                   label="Editado"
@@ -1369,6 +1626,11 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                         }
                       }}
                       disabled={deletingImage}
+                      sx={{
+                        "@media (max-width: 600px)": {
+                          width: "100%",
+                        },
+                      }}
                     />
                   }
                   label="Eliminado"
@@ -1400,6 +1662,9 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                   outline: "none",
                   boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
                 },
+                "@media (max-width: 600px)": {
+                  width: "100%",
+                },
               }}
               disabled={deletingImage}
             >
@@ -1427,6 +1692,9 @@ const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>('');
                 "&:focus": {
                   outline: "none",
                   boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                },
+                "@media (max-width: 600px)": {
+                  width: "100%",
                 },
               }}
               disabled={deletingImage}
