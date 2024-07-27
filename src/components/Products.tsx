@@ -711,11 +711,13 @@ const Products: React.FC = () => {
                   <MenuItem value="">
                     <em>Seleccionar Marca</em>
                   </MenuItem>
-                  {brands.map((brand) => (
-                    <MenuItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </MenuItem>
-                  ))}
+                  {brands
+                    .sort((a, b) => a.name.localeCompare(b.name)) // Ordena alfabéticamente por el nombre de la marca
+                    .map((brand) => (
+                      <MenuItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
 
@@ -1380,11 +1382,15 @@ const Products: React.FC = () => {
                 <MenuItem value="">
                   <em>Seleccionar Marca</em>
                 </MenuItem>
-                {brands.map((brand) => (
-                  <MenuItem key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </MenuItem>
-                ))}
+                {/* Ordena el array de marcas alfabéticamente por nombre */}
+                {brands
+                  .slice() // Crea una copia del array para no modificar el original
+                  .sort((a, b) => a.name.localeCompare(b.name)) // Ordena alfabéticamente por nombre
+                  .map((brand) => (
+                    <MenuItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </MenuItem>
+                  ))}
               </Select>
             </FormControl>
 
