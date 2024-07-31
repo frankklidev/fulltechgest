@@ -92,33 +92,26 @@ const SpecialOffers: React.FC = () => {
     }
   };
 
-  const ensureNoActiveOffer = async (currentOfferId: number | null = null) => {
-    const { data: activeOffers } = await supabase
-      .from("special_offers")
-      .select("id")
-      .eq("is_active", true);
+  // const ensureNoActiveOffer = async (currentOfferId: number | null = null) => {
+  //   const { data: activeOffers } = await supabase
+  //     .from("special_offers")
+  //     .select("id")
+  //     .eq("is_active", true);
 
-    if (currentOfferId) {
-      // Excluir la oferta actual si está en modo de edición
-      return activeOffers?.filter((offer) => offer.id !== currentOfferId).length === 0;
-    }
+  //   if (currentOfferId) {
+  //     // Excluir la oferta actual si está en modo de edición
+  //     return activeOffers?.filter((offer) => offer.id !== currentOfferId).length === 0;
+  //   }
 
-    return activeOffers?.length === 0;
-  };
+  //   return activeOffers?.length === 0;
+  // };
 
   const handleAddOffer = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-
-    if (isActive) {
-      const noActiveOffer = await ensureNoActiveOffer();
-      if (!noActiveOffer) {
-        alert("Ya hay una oferta activa. Desactiva la oferta actual antes de agregar una nueva.");
-        setLoading(false);
-        return;
-      }
-    }
-
+  
+    // Eliminado la verificación para permitir múltiples ofertas activas
+  
     let imageUrl = "";
     if (image) {
       const imagePath = await handleImageUpload(image);
@@ -126,7 +119,7 @@ const SpecialOffers: React.FC = () => {
         imageUrl = imagePath;
       }
     }
-
+  
     const { data, error } = await supabase
       .from("special_offers")
       .insert([
@@ -141,6 +134,7 @@ const SpecialOffers: React.FC = () => {
         },
       ])
       .select("*");
+  
     if (error) {
       console.error("Error adding offer:", error);
       alert("Error adding offer: " + error.message);
@@ -157,25 +151,19 @@ const SpecialOffers: React.FC = () => {
     }
     setLoading(false);
   };
+  
 
   const handleSaveEdit = async () => {
     setLoading(true);
-
-    if (editIsActive) {
-      const noActiveOffer = await ensureNoActiveOffer(editOfferId);
-      if (!noActiveOffer) {
-        alert("Ya hay una oferta activa. Desactiva la oferta actual antes de activar esta oferta.");
-        setLoading(false);
-        return;
-      }
-    }
-
+  
+    // Eliminado la verificación para permitir múltiples ofertas activas
+  
     let imageUrl = "";
     let imagePath: string | null = null;
     const currentOffer = specialOffers.find(
       (offer) => offer.id === editOfferId
     );
-
+  
     if (editImage) {
       if (currentOffer?.image_url) {
         const previousImagePath = currentOffer.image_url
@@ -191,7 +179,7 @@ const SpecialOffers: React.FC = () => {
     } else {
       imageUrl = currentOffer?.image_url || "";
     }
-
+  
     const { data, error } = await supabase
       .from("special_offers")
       .update({
@@ -205,7 +193,7 @@ const SpecialOffers: React.FC = () => {
       })
       .eq("id", editOfferId)
       .select("*");
-
+  
     if (error) {
       console.error("Error updating offer:", error);
     } else if (data && data.length > 0) {
@@ -219,6 +207,7 @@ const SpecialOffers: React.FC = () => {
     }
     setLoading(false);
   };
+  
 
   const handleEditOffer = (offer: SpecialOffer) => {
     setEditOfferId(offer.id);
