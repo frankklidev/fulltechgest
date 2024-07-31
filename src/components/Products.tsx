@@ -116,7 +116,7 @@ const Products: React.FC = () => {
   const [editProductIsEdited, setEditProductIsEdited] =
     useState<boolean>(false);
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
-  const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
+  const [, setHasPendingChanges] = useState<boolean>(false);
 
   const [selectedBrand, setSelectedBrand] = useState<number | string>("");
   const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>(
@@ -132,9 +132,7 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     setHasPendingChanges(
-      products.some(
-        (product) => product.isdeleted || product.isedited || !product.link
-      )
+      products.length === 0 || products.some((product) => product.isdeleted)
     );
   }, [products]);
 
@@ -355,9 +353,11 @@ const Products: React.FC = () => {
   };
 
   const handleExport = () => {
-    copyLinksToClipboard(products);
+    const activeProducts = products.filter((product) => !product.isdeleted);
+    copyLinksToClipboard(activeProducts);
   };
-
+  
+  
   const resetEditState = () => {
     setEditProductId(null);
     setEditProductName("");
@@ -583,36 +583,54 @@ const Products: React.FC = () => {
             }}
           />
 
-          <Button
-            variant="contained"
-            onClick={handleExport}
-            sx={{
-              backgroundColor: hasPendingChanges ? "#B0BEC5" : "#1976d2", // Gris si hay cambios pendientes
-              color: "white",
-              fontWeight: "bold",
-              textTransform: "none",
-              borderRadius: "8px",
-              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-              "&:hover": {
-                backgroundColor: hasPendingChanges ? "#B0BEC5" : "#115293",
-                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
-              },
-              "&:active": {
-                backgroundColor: hasPendingChanges ? "#B0BEC5" : "#0d3a6a",
-              },
-              "&:focus": {
-                outline: "none",
-                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
-              },
-              "@media (max-width: 600px)": {
-                width: "100%",
-                marginBottom: 2,
-              },
-            }}
-            disabled={hasPendingChanges}
-          >
-            COPIAR ENLACES
-          </Button>
+<Button
+  variant="contained"
+  onClick={handleExport}
+  sx={{
+    backgroundColor:
+      !products.length ||
+      (products.some((product) => product.isdeleted) &&
+      !products.some((product) => !product.link || product.isedited))
+        ? "#1976d2"
+        : "#B0BEC5",
+    color: "white",
+    fontWeight: "bold",
+    textTransform: "none",
+    borderRadius: "8px",
+    boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+    "&:hover": {
+      backgroundColor:
+        !products.length ||
+        (products.some((product) => product.isdeleted) &&
+        !products.some((product) => !product.link || product.isedited))
+          ? "#115293"
+          : "#B0BEC5",
+      boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+    },
+    "&:active": {
+      backgroundColor:
+        !products.length ||
+        (products.some((product) => product.isdeleted) &&
+        !products.some((product) => !product.link || product.isedited))
+          ? "#0d3a6a"
+          : "#B0BEC5",
+    },
+    "&:focus": {
+      outline: "none",
+      boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+    },
+    "@media (max-width: 600px)": {
+      width: "100%",
+      marginBottom: 2,
+    },
+  }}
+  disabled={
+    products.some((product) => !product.link || product.isedited)
+  }
+>
+  COPIAR ENLACES
+</Button>
+
 
           <Button
             variant="contained"
