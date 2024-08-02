@@ -35,7 +35,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
 
-import { copyLinksToClipboard } from "../utils/exportToExcel";
+import { copyLinksToClipboard, exportToExcel } from "../utils/exportToExcel";
 
 import styled from "styled-components";
 
@@ -185,7 +185,10 @@ const Products: React.FC = () => {
     else setProducts(data || []);
     setDataLoading(false);
   };
-
+  const handleExportToExcel = () => {
+    const activeProducts = products.filter((product) => !product.isdeleted);
+    exportToExcel(activeProducts);
+  };
   const handleImageUpload = async (file: File) => {
     const { data, error } = await supabase.storage
       .from("products")
@@ -356,8 +359,7 @@ const Products: React.FC = () => {
     const activeProducts = products.filter((product) => !product.isdeleted);
     copyLinksToClipboard(activeProducts);
   };
-  
-  
+
   const resetEditState = () => {
     setEditProductId(null);
     setEditProductName("");
@@ -583,54 +585,91 @@ const Products: React.FC = () => {
             }}
           />
 
-<Button
-  variant="contained"
-  onClick={handleExport}
-  sx={{
-    backgroundColor:
-      !products.length ||
-      (products.some((product) => product.isdeleted) &&
-      !products.some((product) => !product.link || product.isedited))
-        ? "#1976d2"
-        : "#B0BEC5",
-    color: "white",
-    fontWeight: "bold",
-    textTransform: "none",
-    borderRadius: "8px",
-    boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-    "&:hover": {
-      backgroundColor:
-        !products.length ||
-        (products.some((product) => product.isdeleted) &&
-        !products.some((product) => !product.link || product.isedited))
-          ? "#115293"
-          : "#B0BEC5",
-      boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
-    },
-    "&:active": {
-      backgroundColor:
-        !products.length ||
-        (products.some((product) => product.isdeleted) &&
-        !products.some((product) => !product.link || product.isedited))
-          ? "#0d3a6a"
-          : "#B0BEC5",
-    },
-    "&:focus": {
-      outline: "none",
-      boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
-    },
-    "@media (max-width: 600px)": {
-      width: "100%",
-      marginBottom: 2,
-    },
-  }}
-  disabled={
-    products.some((product) => !product.link || product.isedited)
-  }
->
-  COPIAR ENLACES
-</Button>
-
+          <Button
+            variant="contained"
+            onClick={handleExport}
+            sx={{
+              backgroundColor:
+                !products.length ||
+                (products.some((product) => product.isdeleted) &&
+                  !products.some(
+                    (product) => !product.link || product.isedited
+                  ))
+                  ? "#1976d2"
+                  : "#B0BEC5",
+              color: "white",
+              fontWeight: "bold",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
+              "&:hover": {
+                backgroundColor:
+                  !products.length ||
+                  (products.some((product) => product.isdeleted) &&
+                    !products.some(
+                      (product) => !product.link || product.isedited
+                    ))
+                    ? "#115293"
+                    : "#B0BEC5",
+                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+              },
+              "&:active": {
+                backgroundColor:
+                  !products.length ||
+                  (products.some((product) => product.isdeleted) &&
+                    !products.some(
+                      (product) => !product.link || product.isedited
+                    ))
+                    ? "#0d3a6a"
+                    : "#B0BEC5",
+              },
+              "&:focus": {
+                outline: "none",
+                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+              },
+              "@media (max-width: 600px)": {
+                width: "100%",
+                marginBottom: 2,
+              },
+            }}
+            disabled={products.some(
+              (product) => !product.link || product.isedited
+            )}
+          >
+            COPIAR ENLACES
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleExportToExcel}
+            sx={{
+              width: "200px",
+              marginLeft: 1,
+              backgroundColor: "#4caf50", // Verde para el fondo del botón
+              color: "white",
+              fontWeight: "bold",
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "0 3px 5px 2px rgba(76, 175, 80, .3)", // Sombra verde
+              "&:hover": {
+                backgroundColor: "#388e3c", // Verde oscuro para el hover
+                boxShadow: "0 6px 10px 4px rgba(56, 142, 60, .3)", // Sombra verde oscuro
+              },
+              "&:active": {
+                backgroundColor: "#2e7d32", // Verde más oscuro para el active
+              },
+              "&:focus": {
+                outline: "none",
+                boxShadow: "0 0 0 4px rgba(76, 175, 80, .5)", // Sombra de enfoque verde
+              },
+              "@media (max-width: 600px)": {
+                width: "100%",
+                marginBottom: 2,
+              },
+            }}
+          >
+            Exportar a Excel
+          </Button>
 
           <Button
             variant="contained"
