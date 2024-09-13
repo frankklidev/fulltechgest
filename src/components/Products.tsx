@@ -34,6 +34,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { supabase } from "../supabaseClient";
 import { Box as MuiBox } from "@mui/material";
+import GetAppIcon from "@mui/icons-material/GetApp";
 
 import { copyLinksToClipboard, exportToExcel } from "../utils/exportToExcel";
 
@@ -176,6 +177,26 @@ const Products: React.FC = () => {
     const { data, error } = await supabase.from("brand").select("*");
     if (error) console.error("Error fetching brands:", error);
     else setBrands(data || []);
+  };
+
+  const handleDownloadImage = async (imageUrl: string, imageName: string) => {
+    try {
+      // Fetch the image as a blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+  
+      // Create a link element and trigger the download
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", imageName); // Forzar el nombre del archivo de descarga
+      document.body.appendChild(link);
+      link.click();
+  
+      // Cleanup
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading the image:", error);
+    }
   };
 
   const fetchProducts = async () => {
@@ -1102,37 +1123,28 @@ const Products: React.FC = () => {
                         product.name
                       )}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        padding: "4px",
-                        width: "15%",
-                        lineHeight: "1",
-                        "@media (max-width: 600px)": {
-                          fontSize: "12px",
-                          padding: "8px 4px",
-                        },
-                      }}
-                    >
-                      {editProductId === product.id ? (
-                        <TextField
-                          fullWidth
-                          value={editProductDescription}
-                          onChange={(e) =>
-                            setEditProductDescription(e.target.value)
-                          }
-                          margin="normal"
-                          disabled={product.isdeleted}
-                          sx={{
-                            margin: 0,
-                            "@media (max-width: 600px)": {
-                              fontSize: "12px",
-                            },
-                          }}
-                        />
+
+                    {/* Imagen con opción de descarga */}
+                    <TableCell>
+                      {product.image_url ? (
+                        <Tooltip title="Descargar Imagen">
+                          <IconButton
+                            onClick={() =>
+                              product.image_url &&
+                              handleDownloadImage(
+                                product.image_url,
+                                product.name
+                              )
+                            }
+                          >
+                            <GetAppIcon />
+                          </IconButton>
+                        </Tooltip>
                       ) : (
-                        product.description
+                        "Sin imagen"
                       )}
                     </TableCell>
+
                     <TableCell
                       sx={{
                         padding: "4px",
@@ -1165,6 +1177,7 @@ const Products: React.FC = () => {
                         product.price
                       )}
                     </TableCell>
+
                     <TableCell
                       sx={{
                         padding: "4px",
@@ -1212,6 +1225,7 @@ const Products: React.FC = () => {
                         </Tooltip>
                       )}
                     </TableCell>
+
                     <TableCell
                       align="right"
                       sx={{
