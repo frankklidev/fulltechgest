@@ -20,11 +20,11 @@ export default defineConfig({
   },
   server: {
     port: 3001,
-    // Configuración para redirigir todas las rutas a index.html en aplicaciones SPA
     fs: {
       allow: ['.'],
     },
-    middlewareMode: true, // Esto habilita el modo middleware de Vite
+    // Aquí habilitamos historyApiFallback para que todas las rutas se redirijan a index.html
+    historyApiFallback: true,
   },
   preview: {
     port: 3001,

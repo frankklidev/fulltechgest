@@ -1,47 +1,105 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface Product {
-  id: number;
+  id: number | string;
   name: string;
   description: string;
-  price: number;
+  price: number | string;
   link: string;
-  category_id: number;
-  subcategory_id: number;
+  category_id: number | string;
+  subcategory_id: number | string;
   image_url?: string;
   isedited: boolean;
   isdeleted: boolean;
-  brand_id?: number;
+  brand_id?: number | string;
 }
 
-export const exportToExcel = (products: Product[]) => {
-  // Filtra los productos eliminados y solo selecciona nombre y precio
-  const filteredProducts = products
-    .filter(product => !product.isdeleted)
-    .map(({ name, price }) => ({ name, price }));
-  
-  const worksheet = XLSX.utils.json_to_sheet(filteredProducts);
-
-  // Configuración del ancho de las columnas
-  const columnWidths = [
-    { wch: 50 }, // Ancho para la columna de nombre
-    { wch: 15 }  // Ancho para la columna de precio
-  ];
-  worksheet['!cols'] = columnWidths;
-  
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
-  XLSX.writeFile(workbook, 'products.xlsx');
+// Función para transformar los datos crudos a la estructura esperada
+const transformDataToProducts = (data: any[]): Product[] => {
+  return data.map(item => ({
+    id: parseInt(item.ID || '0', 10) || '', // Convertir 0 a cadena vacía
+    name: item.Nombre || '',
+    description: item.Descripción || '',
+    price: parseFloat(item.Precio || '0') || '', // Convertir 0 a cadena vacía
+    link: item.Enlace || '',
+    category_id: item.category_id || '', // Convertir 0 a cadena vacía
+    subcategory_id: item.subcategory_id || '', // Convertir 0 a cadena vacía
+    image_url: item.image_url || '',
+    isedited: item.isedited || false,
+    isdeleted: item.isdeleted || false,
+    brand_id: item.brand_id || '', // Convertir 0 a cadena vacía
+  }));
 };
 
-export const copyLinksToClipboard = (products: Product[]) => {
-  // Extrae los enlaces de los productos
-  const links = products.map(product => product.link).filter(link => link);
+// Función para exportar los productos a Excel
+export const exportToExcel = async (rawData: any[]) => {
+  // Transformar los datos crudos
+  const products = transformDataToProducts(rawData);
 
-  // Une los enlaces en una sola cadena, separada por dos saltos de línea
+  // Filtrar los productos eliminados y seleccionar las columnas necesarias
+  const filteredProducts = products.filter(product => !product.isdeleted);
+
+  if (filteredProducts.length === 0) {
+    console.error('No hay productos válidos para exportar.');
+    return;
+  }
+
+  // Crear un nuevo libro y hoja de Excel
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Products');
+
+  // Configurar encabezados de las columnas
+  worksheet.columns = [
+    { header: 'Nombre', key: 'name', width: 40 },
+    { header: 'Precio', key: 'price', width: 15 },
+  ];
+
+  // Agregar filas y aplicar estilos
+  filteredProducts.forEach(product => {
+    const isCategory = product.name.startsWith('Categoría:');
+    const isSubcategory = product.name.startsWith('Subcategoría:');
+
+    const row = worksheet.addRow({
+      name: product.name,
+      price: product.price || '',
+    });
+
+    if (isCategory) {
+      row.getCell('name').font = { bold: true, size: 14 }; // Aplicar negrita y aumentar tamaño para categorías
+    } else if (isSubcategory) {
+      row.getCell('name').font = { bold: true, size: 12 }; // Aplicar negrita y aumentar tamaño para subcategorías
+    }
+    
+  });
+
+  // Guardar el archivo Excel
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = 'products.xlsx';
+  link.click();
+};
+
+// Función para copiar los enlaces de productos al portapapeles
+export const copyLinksToClipboard = (rawData: any[]) => {
+  // Transformar los datos crudos
+  const products = transformDataToProducts(rawData);
+
+  // Extraer los enlaces de los productos no eliminados
+  const links = products
+    .filter(product => product.link && !product.isdeleted)
+    .map(product => product.link);
+
+  if (links.length === 0) {
+    console.error('No hay enlaces válidos para copiar al portapapeles.');
+    return;
+  }
+
+  // Unir los enlaces en una sola cadena, separada por dos saltos de línea
   const textContent = links.join('\n\n');
 
-  // Copia el contenido al portapapeles
+  // Copiar el contenido al portapapeles
   navigator.clipboard.writeText(textContent).then(
     () => {
       console.log('Enlaces copiados al portapapeles');

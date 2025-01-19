@@ -163,6 +163,7 @@ const Products: React.FC = () => {
 
   const fetchCategories = async () => {
     const { data, error } = await supabase.from("categories").select("*");
+    console.log("las categorias", data);
     if (error) console.error("Error fetching categories:", error);
     else setCategories(data || []);
   };
@@ -184,14 +185,14 @@ const Products: React.FC = () => {
       // Fetch the image as a blob
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-  
+
       // Create a link element and trigger the download
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.setAttribute("download", imageName); // Forzar el nombre del archivo de descarga
       document.body.appendChild(link);
       link.click();
-  
+
       // Cleanup
       link.remove();
     } catch (error) {
@@ -207,9 +208,91 @@ const Products: React.FC = () => {
     setDataLoading(false);
   };
   const handleExportToExcel = () => {
+    // Filtrar los productos activos
     const activeProducts = products.filter((product) => !product.isdeleted);
-    exportToExcel(activeProducts);
+  
+    // Agrupar productos por categoría y subcategoría
+    const groupedByCategoryAndSubcategory = activeProducts.reduce(
+      (acc, product) => {
+        const category = categories.find(
+          (cat) => cat.id === product.category_id
+        );
+        const subcategory = subcategories.find(
+          (sub) => sub.id === product.subcategory_id
+        );
+  
+        if (category) {
+          if (!acc[category.name]) {
+            acc[category.name] = {};
+          }
+          if (subcategory) {
+            if (!acc[category.name][subcategory.name]) {
+              acc[category.name][subcategory.name] = [];
+            }
+            acc[category.name][subcategory.name].push(product);
+          } else {
+            if (!acc[category.name]["Sin Subcategoría"]) {
+              acc[category.name]["Sin Subcategoría"] = [];
+            }
+            acc[category.name]["Sin Subcategoría"].push(product);
+          }
+        }
+        return acc;
+      },
+      {}
+    );
+  
+    // Preparar los datos para exportación
+    const exportData = Object.entries(groupedByCategoryAndSubcategory).flatMap(
+      ([categoryName, subcategories]) => {
+        const categoryRow = [
+          {
+            ID: "",
+            Nombre: `Categoría: ${categoryName}`,
+            Descripción: "",
+            Precio: "",
+            Enlace: "",
+            Marca: "",
+            isCategory: true, // Identificador para aplicar estilo
+          },
+        ];
+        const subcategoryRows = Object.entries(subcategories).flatMap(
+          ([subcategoryName, products]) => [
+            {
+              ID: "",
+              Nombre: `Subcategoría: ${subcategoryName}`,
+              Descripción: "",
+              Precio: "",
+              Enlace: "",
+              Marca: "",
+              isSubcategory: true, // Identificador para aplicar estilo
+            },
+            ...products
+              .sort((a, b) => a.name.localeCompare(b.name)) // Ordenar por nombre
+              .map((product) => ({
+                ID: product.id,
+                Nombre: product.name,
+                Descripción: product.description,
+                Precio: product.price,
+                Enlace: product.link,
+                Marca:
+                  brands.find((brand) => brand.id === product.brand_id)?.name ||
+                  "N/A",
+              })),
+          ]
+        );
+        return [...categoryRow, ...subcategoryRows];
+      }
+    );
+  
+    console.log("Datos exportados:", exportData);
+  
+    // Llamar a la función de exportación
+    exportToExcel(exportData);
   };
+  
+  
+
   const handleImageUpload = async (file: File) => {
     const { data, error } = await supabase.storage
       .from("products")
@@ -493,6 +576,8 @@ const Products: React.FC = () => {
       option.label.toLowerCase().includes(state.inputValue.toLowerCase())
     );
   };
+
+  console.log("los products filtrados", filteredProducts);
 
   return (
     <Container
