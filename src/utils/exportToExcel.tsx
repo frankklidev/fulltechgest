@@ -63,7 +63,7 @@ export const exportToExcel = async (rawData: any[]) => {
     if (isCategory) {
       worksheet.addRow({}); // Fila en blanco
 
-      const separatorRow = worksheet.addRow({ name: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', price: '' });
+      const separatorRow = worksheet.addRow({ name: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', price: '' });
 
       // Estilo para las cruces largas
       separatorRow.getCell('name').font = {
