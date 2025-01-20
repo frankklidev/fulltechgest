@@ -59,17 +59,45 @@ export const exportToExcel = async (rawData: any[]) => {
     const isCategory = product.name.startsWith('Categoría:');
     const isSubcategory = product.name.startsWith('Subcategoría:');
 
+    // Agregar un espacio antes de una nueva categoría
+    if (isCategory) {
+      worksheet.addRow({}); // Fila en blanco
+
+      const separatorRow = worksheet.addRow({ name: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', price: '' });
+
+      // Estilo para las cruces largas
+      separatorRow.getCell('name').font = {
+        color: { argb: 'FF0000' }, // Rojo
+        bold: true,
+        size: 10,
+      };
+      separatorRow.getCell('name').alignment = { horizontal: 'left' }; // Alinear a la izquierda
+
+      worksheet.addRow({}); // Otro espacio en blanco después de las cruces largas
+    }
+
+    // Agregar un espacio antes de una nueva subcategoría
+    if (isSubcategory) {
+      worksheet.addRow({}); // Fila en blanco
+    }
+
+    // Agregar la fila del producto
     const row = worksheet.addRow({
       name: product.name,
       price: product.price || '',
     });
 
+    // Aplicar estilos para categorías y subcategorías
     if (isCategory) {
-      row.getCell('name').font = { bold: true, size: 14 }; // Aplicar negrita y aumentar tamaño para categorías
+      row.getCell('name').font = { bold: true, size: 14 };
     } else if (isSubcategory) {
-      row.getCell('name').font = { bold: true, size: 12 }; // Aplicar negrita y aumentar tamaño para subcategorías
+      row.getCell('name').font = { bold: true, size: 12 };
     }
-    
+
+    // Agregar un espacio después de una subcategoría
+    if (isSubcategory) {
+      worksheet.addRow({}); // Fila en blanco
+    }
   });
 
   // Guardar el archivo Excel

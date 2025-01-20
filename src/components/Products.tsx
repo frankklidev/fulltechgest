@@ -211,9 +211,16 @@ const Products: React.FC = () => {
     // Filtrar los productos activos
     const activeProducts = products.filter((product) => !product.isdeleted);
   
+    // Definir el tipo para el agrupamiento
+    type GroupedData = {
+      [category: string]: {
+        [subcategory: string]: Array<typeof products[number]>;
+      };
+    };
+  
     // Agrupar productos por categoría y subcategoría
-    const groupedByCategoryAndSubcategory = activeProducts.reduce(
-      (acc, product) => {
+    const groupedByCategoryAndSubcategory: GroupedData = activeProducts.reduce(
+      (acc: GroupedData, product) => {
         const category = categories.find(
           (cat) => cat.id === product.category_id
         );
@@ -239,7 +246,7 @@ const Products: React.FC = () => {
         }
         return acc;
       },
-      {}
+      {} as GroupedData // Inicializar con el tipo definido
     );
   
     // Preparar los datos para exportación
@@ -256,6 +263,7 @@ const Products: React.FC = () => {
             isCategory: true, // Identificador para aplicar estilo
           },
         ];
+  
         const subcategoryRows = Object.entries(subcategories).flatMap(
           ([subcategoryName, products]) => [
             {
@@ -281,6 +289,7 @@ const Products: React.FC = () => {
               })),
           ]
         );
+  
         return [...categoryRow, ...subcategoryRows];
       }
     );
@@ -290,6 +299,7 @@ const Products: React.FC = () => {
     // Llamar a la función de exportación
     exportToExcel(exportData);
   };
+  
   
   
 
