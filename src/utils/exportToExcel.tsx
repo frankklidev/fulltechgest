@@ -110,30 +110,31 @@ export const exportToExcel = async (rawData: any[]) => {
 };
 
 // Función para copiar los enlaces de productos al portapapeles
-export const copyLinksToClipboard = (rawData: any[]) => {
-  // Transformar los datos crudos
-  const products = transformDataToProducts(rawData);
+export const copyLinksToClipboard = (rawData) => {
+  console.log("Datos recibidos en copyLinksToClipboard:", rawData);
 
-  // Extraer los enlaces de los productos no eliminados
-  const links = products
-    .filter(product => product.link && !product.isdeleted)
-    .map(product => product.link);
+  // Filtrar productos no eliminados
+  const links = rawData
+    .filter(product => !product.isdeleted) // Solo no eliminados
+    .map(product => product.link?.trim()) // Asegurarse de que el link sea válido
+    .filter(link => link); // Eliminar enlaces nulos o vacíos
+
+  console.log("Enlaces válidos para copiar:", links);
 
   if (links.length === 0) {
-    console.error('No hay enlaces válidos para copiar al portapapeles.');
+    console.error("No hay enlaces válidos para copiar al portapapeles.");
     return;
   }
 
-  // Unir los enlaces en una sola cadena, separada por dos saltos de línea
-  const textContent = links.join('\n\n');
+  const textContent = links.join("\n\n");
 
-  // Copiar el contenido al portapapeles
+  // Copiar al portapapeles
   navigator.clipboard.writeText(textContent).then(
-    () => {
-      console.log('Enlaces copiados al portapapeles');
-    },
-    (err) => {
-      console.error('Error al copiar al portapapeles: ', err);
-    }
+    () => console.log("Enlaces copiados al portapapeles."),
+    (err) => console.error("Error al copiar al portapapeles:", err)
   );
 };
+
+
+
+

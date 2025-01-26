@@ -470,9 +470,24 @@ const Products: React.FC = () => {
   };
 
   const handleExport = () => {
-    const activeProducts = products.filter((product) => !product.isdeleted);
+    console.log("Hice click");
+  
+    // Filtrar productos no eliminados
+    const activeProducts = products.filter(product => !product.isdeleted);
+  
+    console.log("Productos activos (no eliminados):", activeProducts);
+  
+    if (activeProducts.length === 0) {
+      console.error("No hay productos activos para procesar.");
+      return;
+    }
+  
+    // Pasar los productos no eliminados a la función de copiar enlaces
     copyLinksToClipboard(activeProducts);
   };
+  
+  
+  
 
   const resetEditState = () => {
     setEditProductId(null);
