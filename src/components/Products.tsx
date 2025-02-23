@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -27,18 +27,18 @@ import {
   Switch,
   Autocomplete,
   Tooltip,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
-import { supabase } from "../supabaseClient";
-import { Box as MuiBox } from "@mui/material";
-import GetAppIcon from "@mui/icons-material/GetApp";
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { supabase } from '../supabaseClient';
+import { Box as MuiBox } from '@mui/material';
+import GetAppIcon from '@mui/icons-material/GetApp';
 
-import { copyLinksToClipboard, exportToExcel } from "../utils/exportToExcel";
+import { copyLinksToClipboard, exportToExcel } from '../utils/exportToExcel';
 
-import styled from "styled-components";
+import styled from 'styled-components';
 
 const FileInput = styled.input`
   margin-top: 16px;
@@ -87,27 +87,27 @@ const Products: React.FC = () => {
   >([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productName, setProductName] = useState<string>("");
-  const [productDescription, setProductDescription] = useState<string>("");
+  const [productName, setProductName] = useState<string>('');
+  const [productDescription, setProductDescription] = useState<string>('');
   const [productPrice, setProductPrice] = useState<number>(0);
-  const [productLink, setProductLink] = useState<string>("");
+  const [productLink, setProductLink] = useState<string>('');
   const [productImage, setProductImage] = useState<File | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number>(1);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number>(1);
 
   const [editProductId, setEditProductId] = useState<number | null>(null);
-  const [editProductName, setEditProductName] = useState<string>("");
+  const [editProductName, setEditProductName] = useState<string>('');
   const [editProductDescription, setEditProductDescription] =
-    useState<string>("");
+    useState<string>('');
   const [editProductPrice, setEditProductPrice] = useState<number>(0);
-  const [editProductLink, setEditProductLink] = useState<string>("");
+  const [editProductLink, setEditProductLink] = useState<string>('');
   const [editProductImage, setEditProductImage] = useState<File | null>(null);
   const [editSelectedCategory, setEditSelectedCategory] = useState<number>(1);
   const [editSelectedSubcategory, setEditSelectedSubcategory] =
     useState<number>(1);
 
   const [open, setOpen] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -119,9 +119,9 @@ const Products: React.FC = () => {
   const [deletingImage, setDeletingImage] = useState<boolean>(false);
   const [, setHasPendingChanges] = useState<boolean>(false);
 
-  const [selectedBrand, setSelectedBrand] = useState<number | string>("");
+  const [selectedBrand, setSelectedBrand] = useState<number | string>('');
   const [editSelectedBrand, setEditSelectedBrand] = useState<number | string>(
-    ""
+    ''
   );
 
   useEffect(() => {
@@ -146,15 +146,15 @@ const Products: React.FC = () => {
 
   const checkImageExists = async (fileName: string) => {
     const { data, error } = await supabase.storage
-      .from("products")
-      .list("public", {
+      .from('products')
+      .list('public', {
         limit: 1,
         offset: 0,
         search: fileName,
       });
 
     if (error) {
-      console.error("Error checking if image exists:", error);
+      console.error('Error checking if image exists:', error);
       return false;
     }
 
@@ -162,21 +162,21 @@ const Products: React.FC = () => {
   };
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase.from("categories").select("*");
-    console.log("las categorias", data);
-    if (error) console.error("Error fetching categories:", error);
+    const { data, error } = await supabase.from('categories').select('*');
+    console.log('las categorias', data);
+    if (error) console.error('Error fetching categories:', error);
     else setCategories(data || []);
   };
 
   const fetchSubcategories = async () => {
-    const { data, error } = await supabase.from("subcategories").select("*");
-    if (error) console.error("Error fetching subcategories:", error);
+    const { data, error } = await supabase.from('subcategories').select('*');
+    if (error) console.error('Error fetching subcategories:', error);
     else setSubcategories(data || []);
   };
 
   const fetchBrands = async () => {
-    const { data, error } = await supabase.from("brand").select("*");
-    if (error) console.error("Error fetching brands:", error);
+    const { data, error } = await supabase.from('brand').select('*');
+    if (error) console.error('Error fetching brands:', error);
     else setBrands(data || []);
   };
 
@@ -187,37 +187,37 @@ const Products: React.FC = () => {
       const blob = await response.blob();
 
       // Create a link element and trigger the download
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", imageName); // Forzar el nombre del archivo de descarga
+      link.setAttribute('download', imageName); // Forzar el nombre del archivo de descarga
       document.body.appendChild(link);
       link.click();
 
       // Cleanup
       link.remove();
     } catch (error) {
-      console.error("Error downloading the image:", error);
+      console.error('Error downloading the image:', error);
     }
   };
 
   const fetchProducts = async () => {
     setDataLoading(true);
-    const { data, error } = await supabase.from("products").select("*");
-    if (error) console.error("Error fetching products:", error);
+    const { data, error } = await supabase.from('products').select('*');
+    if (error) console.error('Error fetching products:', error);
     else setProducts(data || []);
     setDataLoading(false);
   };
   const handleExportToExcel = () => {
     // Filtrar los productos activos
     const activeProducts = products.filter((product) => !product.isdeleted);
-  
+
     // Definir el tipo para el agrupamiento
     type GroupedData = {
       [category: string]: {
-        [subcategory: string]: Array<typeof products[number]>;
+        [subcategory: string]: Array<(typeof products)[number]>;
       };
     };
-  
+
     // Agrupar productos por categoría y subcategoría
     const groupedByCategoryAndSubcategory: GroupedData = activeProducts.reduce(
       (acc: GroupedData, product) => {
@@ -227,7 +227,7 @@ const Products: React.FC = () => {
         const subcategory = subcategories.find(
           (sub) => sub.id === product.subcategory_id
         );
-  
+
         if (category) {
           if (!acc[category.name]) {
             acc[category.name] = {};
@@ -238,41 +238,41 @@ const Products: React.FC = () => {
             }
             acc[category.name][subcategory.name].push(product);
           } else {
-            if (!acc[category.name]["Sin Subcategoría"]) {
-              acc[category.name]["Sin Subcategoría"] = [];
+            if (!acc[category.name]['Sin Subcategoría']) {
+              acc[category.name]['Sin Subcategoría'] = [];
             }
-            acc[category.name]["Sin Subcategoría"].push(product);
+            acc[category.name]['Sin Subcategoría'].push(product);
           }
         }
         return acc;
       },
       {} as GroupedData // Inicializar con el tipo definido
     );
-  
+
     // Preparar los datos para exportación
     const exportData = Object.entries(groupedByCategoryAndSubcategory).flatMap(
       ([categoryName, subcategories]) => {
         const categoryRow = [
           {
-            ID: "",
+            ID: '',
             Nombre: `Categoría: ${categoryName}`,
-            Descripción: "",
-            Precio: "",
-            Enlace: "",
-            Marca: "",
+            Descripción: '',
+            Precio: '',
+            Enlace: '',
+            Marca: '',
             isCategory: true, // Identificador para aplicar estilo
           },
         ];
-  
+
         const subcategoryRows = Object.entries(subcategories).flatMap(
           ([subcategoryName, products]) => [
             {
-              ID: "",
+              ID: '',
               Nombre: `Subcategoría: ${subcategoryName}`,
-              Descripción: "",
-              Precio: "",
-              Enlace: "",
-              Marca: "",
+              Descripción: '',
+              Precio: '',
+              Enlace: '',
+              Marca: '',
               isSubcategory: true, // Identificador para aplicar estilo
             },
             ...products
@@ -285,33 +285,30 @@ const Products: React.FC = () => {
                 Enlace: product.link,
                 Marca:
                   brands.find((brand) => brand.id === product.brand_id)?.name ||
-                  "N/A",
+                  'N/A',
               })),
           ]
         );
-  
+
         return [...categoryRow, ...subcategoryRows];
       }
     );
-  
-    console.log("Datos exportados:", exportData);
-  
+
+    console.log('Datos exportados:', exportData);
+
     // Llamar a la función de exportación
     exportToExcel(exportData);
   };
-  
-  
-  
 
   const handleImageUpload = async (file: File) => {
     const { data, error } = await supabase.storage
-      .from("products")
+      .from('products')
       .upload(`public/${file.name}`, file, {
-        cacheControl: "3600",
+        cacheControl: '3600',
         upsert: false,
       });
     if (error) {
-      console.error("Error uploading image:", error);
+      console.error('Error uploading image:', error);
       return null;
     }
     return data.path;
@@ -319,10 +316,10 @@ const Products: React.FC = () => {
 
   const handleImageDelete = async (imagePath: string) => {
     const { error } = await supabase.storage
-      .from("products")
+      .from('products')
       .remove([imagePath]);
     if (error) {
-      console.error("Error deleting image:", error);
+      console.error('Error deleting image:', error);
     }
   };
 
@@ -336,12 +333,12 @@ const Products: React.FC = () => {
     );
 
     if (productExists) {
-      alert("Un producto con este nombre ya existe.");
+      alert('Un producto con este nombre ya existe.');
       setLoading(false);
       return;
     }
 
-    let imageUrl = "";
+    let imageUrl = '';
     if (productImage) {
       const imageExists = await checkImageExists(productImage.name);
       if (imageExists) {
@@ -355,7 +352,7 @@ const Products: React.FC = () => {
     }
 
     const { data, error } = await supabase
-      .from("products")
+      .from('products')
       .insert([
         {
           name: productName,
@@ -370,16 +367,16 @@ const Products: React.FC = () => {
           brand_id: selectedBrand,
         },
       ])
-      .select("*");
+      .select('*');
     if (error) {
-      console.error("Error adding product:", error);
-      alert("Error adding product: " + error.message);
+      console.error('Error adding product:', error);
+      alert('Error adding product: ' + error.message);
     } else if (data && data.length > 0) {
       setProducts([...products, data[0]]);
-      setProductName("");
-      setProductDescription("");
+      setProductName('');
+      setProductDescription('');
       setProductPrice(0);
-      setProductLink("");
+      setProductLink('');
       setSelectedCategory(1);
       setSelectedSubcategory(1);
       setProductImage(null);
@@ -392,7 +389,7 @@ const Products: React.FC = () => {
 
   const handleSaveEdit = async () => {
     setLoading(true);
-    let imageUrl = "";
+    let imageUrl = '';
     let imagePath = null;
     const currentProduct = products.find(
       (product) => product.id === editProductId
@@ -405,9 +402,9 @@ const Products: React.FC = () => {
       } else {
         if (currentProduct?.image_url) {
           const previousImagePath = currentProduct.image_url
-            .split("/")
+            .split('/')
             .slice(4)
-            .join("/");
+            .join('/');
           await handleImageDelete(previousImagePath);
         }
         imagePath = await handleImageUpload(editProductImage);
@@ -416,7 +413,7 @@ const Products: React.FC = () => {
         }
       }
     } else {
-      imageUrl = currentProduct?.image_url || "";
+      imageUrl = currentProduct?.image_url || '';
     }
 
     const updateData = {
@@ -432,14 +429,14 @@ const Products: React.FC = () => {
     };
 
     const { data, error } = await supabase
-      .from("products")
+      .from('products')
       .update(updateData)
-      .eq("id", editProductId)
-      .select("*");
+      .eq('id', editProductId)
+      .select('*');
 
     if (error) {
-      console.error("Error updating product:", error);
-      alert("Error al guardar los cambios: " + error.message);
+      console.error('Error updating product:', error);
+      alert('Error al guardar los cambios: ' + error.message);
     } else if (data && data.length > 0) {
       setProducts(
         products.map((product) =>
@@ -463,41 +460,38 @@ const Products: React.FC = () => {
     setEditProductLink(product.link);
     setEditSelectedCategory(product.category_id);
     setEditSelectedSubcategory(product.subcategory_id);
-    setEditSelectedBrand(product.brand_id || "");
+    setEditSelectedBrand(product.brand_id || '');
     setEditProductImage(null); // Reset the image selection when editing a product
     setEditProductIsEdited(product.isedited || true);
     setModalOpen(true);
   };
 
   const handleExport = () => {
-    console.log("Hice click");
-  
+    console.log('Hice click');
+
     // Filtrar productos no eliminados
-    const activeProducts = products.filter(product => !product.isdeleted);
-  
-    console.log("Productos activos (no eliminados):", activeProducts);
-  
+    const activeProducts = products.filter((product) => !product.isdeleted);
+
+    console.log('Productos activos (no eliminados):', activeProducts);
+
     if (activeProducts.length === 0) {
-      console.error("No hay productos activos para procesar.");
+      console.error('No hay productos activos para procesar.');
       return;
     }
-  
+
     // Pasar los productos no eliminados a la función de copiar enlaces
     copyLinksToClipboard(activeProducts);
   };
-  
-  
-  
 
   const resetEditState = () => {
     setEditProductId(null);
-    setEditProductName("");
-    setEditProductDescription("");
+    setEditProductName('');
+    setEditProductDescription('');
     setEditProductPrice(0);
-    setEditProductLink("");
+    setEditProductLink('');
     setEditSelectedCategory(1);
     setEditSelectedSubcategory(1);
-    setEditSelectedBrand("");
+    setEditSelectedBrand('');
     setEditProductImage(null); // Resetea la imagen aquí
     setEditProductIsEdited(false);
     setModalOpen(false);
@@ -510,12 +504,12 @@ const Products: React.FC = () => {
     if (productToDelete) {
       // Actualiza el campo isdeleted en lugar de eliminar el producto
       const { error } = await supabase
-        .from("products")
+        .from('products')
         .update({ isdeleted: !productToDelete.isdeleted }) // Alterna el estado de isdeleted
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) {
-        console.error("Error deleting product:", error);
+        console.error('Error deleting product:', error);
       } else {
         // Actualiza el estado local de los productos
         setProducts(
@@ -602,86 +596,113 @@ const Products: React.FC = () => {
     );
   };
 
-  console.log("los products filtrados", filteredProducts);
+  // function checkButtonColor(filteredProducts) {
+  //   // 1. Verificamos si hay productos (si el array está vacío o no)
+  //   const noProducts = !filteredProducts.length;
+  //   console.log("No hay productos:", noProducts);
+
+  //   // 2. Verificamos si hay productos eliminados
+  //   const hasDeletedProducts = filteredProducts.some((product) => product.isdeleted);
+  //   console.log("Hay productos eliminados:", hasDeletedProducts);
+
+  //   // 3. Verificamos si hay productos sin enlace o que están editados
+  //   const hasProductWithoutLinkOrEdited = filteredProducts.some(
+  //     (product) => !product.link || product.isedited
+  //   );
+  //   console.log("Hay productos sin enlace o editados:", hasProductWithoutLinkOrEdited);
+
+  //   // 4. Evaluamos si el color debe ser azul o gris
+  //   const buttonColor =
+  //     noProducts ||
+  //     (hasDeletedProducts && !hasProductWithoutLinkOrEdited)
+  //     ? "#1976d2"  // Azul
+  //     : "#B0BEC5";  // Gris
+
+  //   console.log("Color del botón:", buttonColor === "#1976d2" ? "azul" : "gris");
+  //   return buttonColor;
+  // }
+
+  // console.log(checkButtonColor(filteredProducts));
+  console.log('los products filtrados', filteredProducts);
 
   return (
     <Container
-      component="main"
+      component='main'
       maxWidth={false}
       sx={{
         flexGrow: 1,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         paddingLeft: 0, // Eliminar padding izquierdo
         paddingRight: 0, // Eliminar padding derecho
-        "@media (max-width: 600px)": {
+        '@media (max-width: 600px)': {
           paddingLeft: 2,
           paddingRight: 2,
         },
       }}
     >
       <Backdrop open={loading} style={{ zIndex: 1500 }}>
-        <CircularProgress color="inherit" />
+        <CircularProgress color='inherit' />
       </Backdrop>
       <Box
         sx={{
           marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          width: "100%", // Asegúrate de que ocupe el ancho completo
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '100%', // Asegúrate de que ocupe el ancho completo
           paddingLeft: 2, // Opcional: Añadir un poco de padding
           paddingRight: 2, // Opcional: Añadir un poco de padding
         }}
       >
         <Box
           sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
             mb: 2,
-            "@media (max-width: 600px)": {
-              flexDirection: "column",
-              alignItems: "center",
+            '@media (max-width: 600px)': {
+              flexDirection: 'column',
+              alignItems: 'center',
             },
           }}
         >
           <TextField
-            label="Buscar"
-            variant="outlined"
+            label='Buscar'
+            variant='outlined'
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Buscar productos..."
+            placeholder='Buscar productos...'
             sx={{
-              width: "100%",
+              width: '100%',
               maxWidth: 400,
               marginBottom: 2,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "8px",
-                boxShadow: "0 3px 5px 2px rgba(0, 0, 0, .1)",
-                "& fieldset": {
-                  borderColor: "#1976d2",
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                boxShadow: '0 3px 5px 2px rgba(0, 0, 0, .1)',
+                '& fieldset': {
+                  borderColor: '#1976d2',
                 },
-                "&:hover fieldset": {
-                  borderColor: "#115293",
+                '&:hover fieldset': {
+                  borderColor: '#115293',
                 },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#0d3a6a",
+                '&.Mui-focused fieldset': {
+                  borderColor: '#0d3a6a',
                 },
               },
-              "& .MuiInputLabel-outlined": {
-                color: "#1976d2",
-                fontWeight: "bold",
+              '& .MuiInputLabel-outlined': {
+                color: '#1976d2',
+                fontWeight: 'bold',
               },
-              "& .MuiInputLabel-outlined.Mui-focused": {
-                color: "#0d3a6a",
+              '& .MuiInputLabel-outlined.Mui-focused': {
+                color: '#0d3a6a',
               },
-              "& .MuiOutlinedInput-input": {
-                padding: "10px 14px",
+              '& .MuiOutlinedInput-input': {
+                padding: '10px 14px',
               },
-              "@media (max-width: 600px)": {
-                width: "100%",
+              '@media (max-width: 600px)': {
+                width: '100%',
               },
             }}
           />
@@ -692,109 +713,77 @@ const Products: React.FC = () => {
                 checked={filterNew}
                 onChange={() => setFilterNew(!filterNew)}
                 sx={{
-                  "& .MuiSwitch-switchBase": {
-                    color: "green",
-                    "&.Mui-checked": {
-                      color: "darkgreen",
+                  '& .MuiSwitch-switchBase': {
+                    color: 'green',
+                    '&.Mui-checked': {
+                      color: 'darkgreen',
                     },
-                    "&.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "darkgreen",
+                    '&.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: 'darkgreen',
                     },
                   },
-                  "& .MuiSwitch-track": {
-                    backgroundColor: "lightgray",
+                  '& .MuiSwitch-track': {
+                    backgroundColor: 'lightgray',
                   },
                 }}
               />
             }
-            label="Filtrar modificaciones"
+            label='Filtrar modificaciones'
             sx={{
-              "& .MuiFormControlLabel-label": {
-                fontWeight: "bold",
-                color: "darkgreen",
+              '& .MuiFormControlLabel-label': {
+                fontWeight: 'bold',
+                color: 'darkgreen',
               },
             }}
           />
 
           <Button
-            variant="contained"
+            variant='contained'
             onClick={handleExport}
             sx={{
               backgroundColor:
-                !products.length ||
-                (products.some((product) => product.isdeleted) &&
-                  !products.some(
-                    (product) => !product.link || product.isedited
-                  ))
-                  ? "#1976d2"
-                  : "#B0BEC5",
-              color: "white",
-              fontWeight: "bold",
-              textTransform: "none",
-              borderRadius: "8px",
-              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-              "&:hover": {
-                backgroundColor:
-                  !products.length ||
-                  (products.some((product) => product.isdeleted) &&
-                    !products.some(
-                      (product) => !product.link || product.isedited
-                    ))
-                    ? "#115293"
-                    : "#B0BEC5",
-                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
-              },
-              "&:active": {
-                backgroundColor:
-                  !products.length ||
-                  (products.some((product) => product.isdeleted) &&
-                    !products.some(
-                      (product) => !product.link || product.isedited
-                    ))
-                    ? "#0d3a6a"
-                    : "#B0BEC5",
-              },
-              "&:focus": {
-                outline: "none",
-                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
-              },
-              "@media (max-width: 600px)": {
-                width: "100%",
-                marginBottom: 2,
+                !products.length || // Si no hay productos
+                products.some((product) => !product.link || product.isedited) // Si hay productos sin enlace o editados
+                  ? '#B0BEC5' // Gris si no hay productos o si hay productos sin enlace o editados
+                  : '#1976d2', // Azul si todos los productos tienen enlace y no están editados
+              '&:disabled': {
+                backgroundColor: '#B0BEC5', // Gris cuando está deshabilitado
               },
             }}
-            disabled={products.some(
-              (product) => !product.link || product.isedited
-            )}
+            disabled={
+              !products.length ||
+              products.some((product) => !product.link || product.isedited) // Deshabilitar si no hay productos o hay productos sin enlace o editados
+            }
           >
-            COPIAR ENLACES
+            Copiar Enlaces
           </Button>
+
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             onClick={handleExportToExcel}
             sx={{
-              width: "200px",
+              width: '200px',
               marginLeft: 1,
-              backgroundColor: "#4caf50", // Verde para el fondo del botón
-              color: "white",
-              fontWeight: "bold",
-              textTransform: "none",
-              borderRadius: "8px",
-              boxShadow: "0 3px 5px 2px rgba(76, 175, 80, .3)", // Sombra verde
-              "&:hover": {
-                backgroundColor: "#388e3c", // Verde oscuro para el hover
-                boxShadow: "0 6px 10px 4px rgba(56, 142, 60, .3)", // Sombra verde oscuro
+              backgroundColor: '#4caf50', // Verde para el fondo del botón
+              color: 'white',
+              fontWeight: 'bold',
+              textTransform: 'none',
+              borderRadius: '8px',
+              boxShadow: '0 3px 5px 2px rgba(76, 175, 80, .3)', // Sombra verde
+              '&:hover': {
+                backgroundColor: '#388e3c', // Verde oscuro para el hover
+                boxShadow: '0 6px 10px 4px rgba(56, 142, 60, .3)', // Sombra verde oscuro
               },
-              "&:active": {
-                backgroundColor: "#2e7d32", // Verde más oscuro para el active
+              '&:active': {
+                backgroundColor: '#2e7d32', // Verde más oscuro para el active
               },
-              "&:focus": {
-                outline: "none",
-                boxShadow: "0 0 0 4px rgba(76, 175, 80, .5)", // Sombra de enfoque verde
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 4px rgba(76, 175, 80, .5)', // Sombra de enfoque verde
               },
-              "@media (max-width: 600px)": {
-                width: "100%",
+              '@media (max-width: 600px)': {
+                width: '100%',
                 marginBottom: 2,
               },
             }}
@@ -803,31 +792,31 @@ const Products: React.FC = () => {
           </Button>
 
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             onClick={handleClickOpen}
             sx={{
-              width: "200px",
+              width: '200px',
               marginLeft: 1,
-              backgroundColor: "#1976d2",
-              color: "white",
-              fontWeight: "bold",
-              textTransform: "none",
-              borderRadius: "8px",
-              boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-              "&:hover": {
-                backgroundColor: "#115293",
-                boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+              backgroundColor: '#1976d2',
+              color: 'white',
+              fontWeight: 'bold',
+              textTransform: 'none',
+              borderRadius: '8px',
+              boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
+              '&:hover': {
+                backgroundColor: '#115293',
+                boxShadow: '0 6px 10px 4px rgba(25, 118, 210, .3)',
               },
-              "&:active": {
-                backgroundColor: "#0d3a6a",
+              '&:active': {
+                backgroundColor: '#0d3a6a',
               },
-              "&:focus": {
-                outline: "none",
-                boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 4px rgba(25, 118, 210, .5)',
               },
-              "@media (max-width: 600px)": {
-                width: "100%",
+              '@media (max-width: 600px)': {
+                width: '100%',
               },
             }}
           >
@@ -838,7 +827,7 @@ const Products: React.FC = () => {
           <DialogTitle>Agregar Producto</DialogTitle>
           <DialogContent>
             <Box
-              component="form"
+              component='form'
               onSubmit={handleAddProduct}
               noValidate
               sx={{ mt: 3 }}
@@ -846,28 +835,28 @@ const Products: React.FC = () => {
               <Autocomplete
                 disablePortal
                 freeSolo
-                id="product-name-autocomplete"
+                id='product-name-autocomplete'
                 options={transformProducts(products)}
                 getOptionLabel={(option) =>
-                  typeof option === "string" ? option : option.label
+                  typeof option === 'string' ? option : option.label
                 }
                 filterOptions={filterOptions}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    margin="normal"
+                    margin='normal'
                     required
                     fullWidth
-                    id="productName"
-                    label="Nombre del Producto"
-                    name="productName"
-                    autoComplete="off"
+                    id='productName'
+                    label='Nombre del Producto'
+                    name='productName'
+                    autoComplete='off'
                     autoFocus
                     value={productName}
                     onChange={handleInputChange}
                     sx={{
-                      "@media (max-width: 600px)": {
-                        width: "100%",
+                      '@media (max-width: 600px)': {
+                        width: '100%',
                       },
                     }}
                   />
@@ -875,16 +864,16 @@ const Products: React.FC = () => {
                 onInputChange={(_event, value) => setProductName(value)}
               />
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel id="select-brand-label">Marca</InputLabel>
+                <InputLabel id='select-brand-label'>Marca</InputLabel>
                 <Select
-                  labelId="select-brand-label"
-                  id="select-brand"
+                  labelId='select-brand-label'
+                  id='select-brand'
                   value={selectedBrand}
-                  label="Marca"
+                  label='Marca'
                   onChange={(e) => setSelectedBrand(e.target.value)}
                   sx={{
-                    "@media (max-width: 600px)": {
-                      width: "100%",
+                    '@media (max-width: 600px)': {
+                      width: '100%',
                     },
                   }}
                   MenuProps={{
@@ -896,7 +885,7 @@ const Products: React.FC = () => {
                     },
                   }}
                 >
-                  <MenuItem value="">
+                  <MenuItem value=''>
                     <em>Seleccionar Marca</em>
                   </MenuItem>
                   {brands
@@ -910,75 +899,75 @@ const Products: React.FC = () => {
               </FormControl>
 
               <TextField
-                margin="normal"
+                margin='normal'
                 required
                 fullWidth
-                id="productDescription"
-                label="Descripción"
-                name="productDescription"
-                autoComplete="off"
+                id='productDescription'
+                label='Descripción'
+                name='productDescription'
+                autoComplete='off'
                 value={productDescription}
                 onChange={(e) => setProductDescription(e.target.value)}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
               />
               <TextField
-                margin="normal"
+                margin='normal'
                 required
                 fullWidth
-                type="number"
-                id="productPrice"
-                label="Precio"
-                name="productPrice"
-                autoComplete="off"
+                type='number'
+                id='productPrice'
+                label='Precio'
+                name='productPrice'
+                autoComplete='off'
                 value={productPrice}
                 onChange={(e) => setProductPrice(parseFloat(e.target.value))}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
               />
               <TextField
-                margin="normal"
+                margin='normal'
                 required
                 fullWidth
-                id="productLink"
-                label="Enlace"
-                name="productLink"
-                autoComplete="off"
+                id='productLink'
+                label='Enlace'
+                name='productLink'
+                autoComplete='off'
                 value={productLink}
                 onChange={(e) => setProductLink(e.target.value)}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
               />
               <input
-                type="file"
-                accept="image/*"
+                type='file'
+                accept='image/*'
                 onChange={(e) =>
                   setProductImage(e.target.files ? e.target.files[0] : null)
                 }
                 style={{ marginTop: 16 }}
               />
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel id="select-category-label">Categoría</InputLabel>
+                <InputLabel id='select-category-label'>Categoría</InputLabel>
                 <Select
-                  labelId="select-category-label"
-                  id="select-category"
+                  labelId='select-category-label'
+                  id='select-category'
                   value={selectedCategory}
-                  label="Categoría"
+                  label='Categoría'
                   onChange={(e) =>
                     setSelectedCategory(e.target.value as number)
                   }
                   sx={{
-                    "@media (max-width: 600px)": {
-                      width: "100%",
+                    '@media (max-width: 600px)': {
+                      width: '100%',
                     },
                   }}
                 >
@@ -990,20 +979,20 @@ const Products: React.FC = () => {
                 </Select>
               </FormControl>
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel id="select-subcategory-label">
+                <InputLabel id='select-subcategory-label'>
                   Subcategoría
                 </InputLabel>
                 <Select
-                  labelId="select-subcategory-label"
-                  id="select-subcategory"
+                  labelId='select-subcategory-label'
+                  id='select-subcategory'
                   value={selectedSubcategory}
-                  label="Subcategoría"
+                  label='Subcategoría'
                   onChange={(e) =>
                     setSelectedSubcategory(e.target.value as number)
                   }
                   sx={{
-                    "@media (max-width: 600px)": {
-                      width: "100%",
+                    '@media (max-width: 600px)': {
+                      width: '100%',
                     },
                   }}
                 >
@@ -1018,47 +1007,47 @@ const Products: React.FC = () => {
                 <Button
                   onClick={handleClose}
                   sx={{
-                    backgroundColor: "red",
-                    color: "white",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    borderRadius: "8px",
-                    boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
-                    "&:hover": {
-                      backgroundColor: "darkred",
-                      boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
+                    backgroundColor: 'red',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 3px 5px 2px rgba(255, 0, 0, .3)',
+                    '&:hover': {
+                      backgroundColor: 'darkred',
+                      boxShadow: '0 6px 10px 4px rgba(255, 0, 0, .3)',
                     },
-                    "&:active": {
-                      backgroundColor: "firebrick",
+                    '&:active': {
+                      backgroundColor: 'firebrick',
                     },
-                    "&:focus": {
-                      outline: "none",
-                      boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                    '&:focus': {
+                      outline: 'none',
+                      boxShadow: '0 0 0 4px rgba(255, 0, 0, .5)',
                     },
                   }}
                 >
                   Cancelar
                 </Button>
                 <Button
-                  type="submit"
-                  variant="contained"
+                  type='submit'
+                  variant='contained'
                   sx={{
-                    backgroundColor: "#1976d2",
-                    color: "white",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    borderRadius: "8px",
-                    boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-                    "&:hover": {
-                      backgroundColor: "#115293",
-                      boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                    backgroundColor: '#1976d2',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
+                    '&:hover': {
+                      backgroundColor: '#115293',
+                      boxShadow: '0 6px 10px 4px rgba(25, 118, 210, .3)',
                     },
-                    "&:active": {
-                      backgroundColor: "#0d3a6a",
+                    '&:active': {
+                      backgroundColor: '#0d3a6a',
                     },
-                    "&:focus": {
-                      outline: "none",
-                      boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                    '&:focus': {
+                      outline: 'none',
+                      boxShadow: '0 0 0 4px rgba(25, 118, 210, .5)',
                     },
                   }}
                 >
@@ -1071,10 +1060,10 @@ const Products: React.FC = () => {
         {dataLoading ? (
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "50vh",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '50vh',
             }}
           >
             <CircularProgress />
@@ -1083,32 +1072,32 @@ const Products: React.FC = () => {
           <TableContainer
             component={Paper}
             sx={{
-              overflowX: "auto",
-              width: "100%",
-              "@media (max-width: 600px)": {
-                maxWidth: "100vw",
-                overflowX: "scroll",
+              overflowX: 'auto',
+              width: '100%',
+              '@media (max-width: 600px)': {
+                maxWidth: '100vw',
+                overflowX: 'scroll',
               },
             }}
           >
             <Table
               sx={{
-                borderCollapse: "separate",
-                borderSpacing: "0 10px",
+                borderCollapse: 'separate',
+                borderSpacing: '0 10px',
                 minWidth: 750,
-                tableLayout: "fixed",
-                "@media (max-width: 600px)": {
-                  minWidth: "auto",
-                  "& thead th": {
-                    padding: "8px 4px",
-                    fontSize: "12px",
-                    "& .header-text": {
-                      display: "none",
+                tableLayout: 'fixed',
+                '@media (max-width: 600px)': {
+                  minWidth: 'auto',
+                  '& thead th': {
+                    padding: '8px 4px',
+                    fontSize: '12px',
+                    '& .header-text': {
+                      display: 'none',
                     },
                   },
-                  "& tbody td": {
-                    padding: "8px 4px",
-                    fontSize: "12px",
+                  '& tbody td': {
+                    padding: '8px 4px',
+                    fontSize: '12px',
                   },
                 },
               }}
@@ -1117,72 +1106,72 @@ const Products: React.FC = () => {
                 <TableRow>
                   <TableCell
                     sx={{
-                      padding: "4px",
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      "@media (max-width: 600px)": {
-                        fontSize: "12px",
-                        padding: "8px 4px",
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      '@media (max-width: 600px)': {
+                        fontSize: '12px',
+                        padding: '8px 4px',
                       },
                     }}
                   >
-                    <span className="header-text">Nombre</span>
+                    <span className='header-text'>Nombre</span>
                   </TableCell>
                   <TableCell
                     sx={{
-                      padding: "4px",
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      width: "15%",
-                      "@media (max-width: 600px)": {
-                        fontSize: "12px",
-                        padding: "8px 4px",
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      width: '15%',
+                      '@media (max-width: 600px)': {
+                        fontSize: '12px',
+                        padding: '8px 4px',
                       },
                     }}
                   >
-                    <span className="header-text">Descripción</span>
+                    <span className='header-text'>Descripción</span>
                   </TableCell>
                   <TableCell
                     sx={{
-                      padding: "4px",
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      width: "5%",
-                      "@media (max-width: 600px)": {
-                        fontSize: "12px",
-                        padding: "8px 4px",
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      width: '5%',
+                      '@media (max-width: 600px)': {
+                        fontSize: '12px',
+                        padding: '8px 4px',
                       },
                     }}
                   >
-                    <span className="header-text">Precio</span>
+                    <span className='header-text'>Precio</span>
                   </TableCell>
                   <TableCell
                     sx={{
-                      padding: "4px",
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      width: "40%",
-                      "@media (max-width: 600px)": {
-                        fontSize: "12px",
-                        padding: "8px 4px",
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      width: '40%',
+                      '@media (max-width: 600px)': {
+                        fontSize: '12px',
+                        padding: '8px 4px',
                       },
                     }}
                   >
-                    <span className="header-text">Enlace</span>
+                    <span className='header-text'>Enlace</span>
                   </TableCell>
                   <TableCell
                     sx={{
-                      padding: "4px",
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      width: "5%",
-                      "@media (max-width: 600px)": {
-                        fontSize: "12px",
-                        padding: "8px 4px",
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      width: '5%',
+                      '@media (max-width: 600px)': {
+                        fontSize: '12px',
+                        padding: '8px 4px',
                       },
                     }}
                   >
-                    <span className="header-text">Acciones</span>
+                    <span className='header-text'>Acciones</span>
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -1192,26 +1181,26 @@ const Products: React.FC = () => {
                     key={product.id}
                     sx={{
                       backgroundColor: product.isdeleted
-                        ? "rgba(255, 0, 0, 0.7)"
+                        ? 'rgba(255, 0, 0, 0.7)'
                         : !product.link
-                        ? "rgba(0, 128, 0, 0.7)"
+                        ? 'rgba(0, 128, 0, 0.7)'
                         : product.isedited
-                        ? "rgba(255, 255, 0, 0.7)"
-                        : "inherit",
-                      height: "30px",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 0, 0, 0.05)",
+                        ? 'rgba(255, 255, 0, 0.7)'
+                        : 'inherit',
+                      height: '30px',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
                       },
                     }}
                   >
                     <TableCell
                       sx={{
-                        padding: "4px",
-                        width: "15%",
-                        lineHeight: "1",
-                        "@media (max-width: 600px)": {
-                          fontSize: "12px",
-                          padding: "8px 4px",
+                        padding: '4px',
+                        width: '15%',
+                        lineHeight: '1',
+                        '@media (max-width: 600px)': {
+                          fontSize: '12px',
+                          padding: '8px 4px',
                         },
                       }}
                     >
@@ -1220,12 +1209,12 @@ const Products: React.FC = () => {
                           fullWidth
                           value={editProductName}
                           onChange={(e) => setEditProductName(e.target.value)}
-                          margin="normal"
+                          margin='normal'
                           disabled={product.isdeleted}
                           sx={{
                             margin: 0,
-                            "@media (max-width: 600px)": {
-                              fontSize: "12px",
+                            '@media (max-width: 600px)': {
+                              fontSize: '12px',
                             },
                           }}
                         />
@@ -1237,7 +1226,7 @@ const Products: React.FC = () => {
                     {/* Imagen con opción de descarga */}
                     <TableCell>
                       {product.image_url ? (
-                        <Tooltip title="Descargar Imagen">
+                        <Tooltip title='Descargar Imagen'>
                           <IconButton
                             onClick={() =>
                               product.image_url &&
@@ -1251,35 +1240,35 @@ const Products: React.FC = () => {
                           </IconButton>
                         </Tooltip>
                       ) : (
-                        "Sin imagen"
+                        'Sin imagen'
                       )}
                     </TableCell>
 
                     <TableCell
                       sx={{
-                        padding: "4px",
-                        width: "10%",
-                        lineHeight: "1",
-                        "@media (max-width: 600px)": {
-                          fontSize: "12px",
-                          padding: "8px 4px",
+                        padding: '4px',
+                        width: '10%',
+                        lineHeight: '1',
+                        '@media (max-width: 600px)': {
+                          fontSize: '12px',
+                          padding: '8px 4px',
                         },
                       }}
                     >
                       {editProductId === product.id ? (
                         <TextField
                           fullWidth
-                          type="number"
+                          type='number'
                           value={editProductPrice}
                           onChange={(e) =>
                             setEditProductPrice(parseFloat(e.target.value))
                           }
-                          margin="normal"
+                          margin='normal'
                           disabled={product.isdeleted}
                           sx={{
                             margin: 0,
-                            "@media (max-width: 600px)": {
-                              fontSize: "12px",
+                            '@media (max-width: 600px)': {
+                              fontSize: '12px',
                             },
                           }}
                         />
@@ -1290,15 +1279,15 @@ const Products: React.FC = () => {
 
                     <TableCell
                       sx={{
-                        padding: "4px",
-                        width: "40%",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        lineHeight: "1",
-                        "@media (max-width: 600px)": {
-                          fontSize: "12px",
-                          padding: "8px 4px",
+                        padding: '4px',
+                        width: '40%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        lineHeight: '1',
+                        '@media (max-width: 600px)': {
+                          fontSize: '12px',
+                          padding: '8px 4px',
                         },
                       }}
                     >
@@ -1307,12 +1296,12 @@ const Products: React.FC = () => {
                           fullWidth
                           value={editProductLink}
                           onChange={(e) => setEditProductLink(e.target.value)}
-                          margin="normal"
+                          margin='normal'
                           disabled={product.isdeleted}
                           sx={{
                             margin: 0,
-                            "@media (max-width: 600px)": {
-                              fontSize: "12px",
+                            '@media (max-width: 600px)': {
+                              fontSize: '12px',
                             },
                           }}
                         />
@@ -1320,14 +1309,14 @@ const Products: React.FC = () => {
                         <Tooltip title={product.link}>
                           <a
                             href={product.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            target='_blank'
+                            rel='noopener noreferrer'
                             style={{
-                              display: "block",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              width: "100%",
+                              display: 'block',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              width: '100%',
                             }}
                           >
                             {product.link}
@@ -1337,14 +1326,14 @@ const Products: React.FC = () => {
                     </TableCell>
 
                     <TableCell
-                      align="right"
+                      align='right'
                       sx={{
-                        padding: "4px",
-                        width: "5%",
-                        lineHeight: "1",
-                        "@media (max-width: 600px)": {
-                          fontSize: "12px",
-                          padding: "8px 4px",
+                        padding: '4px',
+                        width: '5%',
+                        lineHeight: '1',
+                        '@media (max-width: 600px)': {
+                          fontSize: '12px',
+                          padding: '8px 4px',
                         },
                       }}
                     >
@@ -1352,14 +1341,14 @@ const Products: React.FC = () => {
                         <>
                           <IconButton
                             onClick={handleSaveEdit}
-                            color="primary"
+                            color='primary'
                             disabled={product.isdeleted}
                           >
                             <SaveIcon />
                           </IconButton>
                           <IconButton
                             onClick={resetEditState}
-                            color="secondary"
+                            color='secondary'
                             disabled={product.isdeleted}
                           >
                             <CancelIcon />
@@ -1369,34 +1358,34 @@ const Products: React.FC = () => {
                         <>
                           <IconButton
                             onClick={() => handleEditProduct(product)}
-                            sx={{ color: "black" }}
+                            sx={{ color: 'black' }}
                             disabled={product.isdeleted}
                           >
                             <EditIcon />
                           </IconButton>
                           {product.isdeleted ? (
                             <Box
-                              sx={{ display: "flex", flexDirection: "column" }}
+                              sx={{ display: 'flex', flexDirection: 'column' }}
                             >
                               <Button
-                                variant="contained"
-                                color="primary"
+                                variant='contained'
+                                color='primary'
                                 onClick={() => handleDeleteProduct(product.id)}
                                 sx={{ mb: 1 }}
                               >
                                 Restaurar Producto
                               </Button>
                               <Button
-                                variant="contained"
-                                color="secondary"
+                                variant='contained'
+                                color='secondary'
                                 onClick={async () => {
                                   const { error } = await supabase
-                                    .from("products")
+                                    .from('products')
                                     .delete()
-                                    .eq("id", product.id);
+                                    .eq('id', product.id);
                                   if (error) {
                                     console.error(
-                                      "Error deleting product permanently:",
+                                      'Error deleting product permanently:',
                                       error
                                     );
                                   } else {
@@ -1414,7 +1403,7 @@ const Products: React.FC = () => {
                           ) : (
                             <IconButton
                               onClick={() => handleDeleteProduct(product.id)}
-                              sx={{ color: "black" }}
+                              sx={{ color: 'black' }}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -1429,23 +1418,23 @@ const Products: React.FC = () => {
           </TableContainer>
         )}
         {totalPages > 1 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
               sx={{
                 mr: 2,
-                backgroundColor: "#1976d2",
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "#115293",
+                backgroundColor: '#1976d2',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#115293',
                 },
-                "&:disabled": {
-                  backgroundColor: "#B0BEC5",
-                  color: "white",
+                '&:disabled': {
+                  backgroundColor: '#B0BEC5',
+                  color: 'white',
                 },
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             >
@@ -1455,8 +1444,8 @@ const Products: React.FC = () => {
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             >
@@ -1466,11 +1455,11 @@ const Products: React.FC = () => {
             <Box
               sx={{
                 mx: 2,
-                display: "flex",
-                alignItems: "center",
-                "@media (max-width: 600px)": {
-                  width: "100%",
-                  textAlign: "center",
+                display: 'flex',
+                alignItems: 'center',
+                '@media (max-width: 600px)': {
+                  width: '100%',
+                  textAlign: 'center',
                   mx: 0,
                   mt: 2,
                 },
@@ -1482,8 +1471,8 @@ const Products: React.FC = () => {
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             >
@@ -1495,60 +1484,60 @@ const Products: React.FC = () => {
       <Modal
         open={modalOpen}
         onClose={resetEditState}
-        aria-labelledby="edit-product-modal-title"
-        aria-describedby="edit-product-modal-description"
+        aria-labelledby='edit-product-modal-title'
+        aria-describedby='edit-product-modal-description'
       >
         <MuiBox
           sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             width: 400,
-            maxHeight: "90vh",
-            overflowY: "auto",
-            bgcolor: "background.paper",
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            bgcolor: 'background.paper',
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
-            "@media (max-width: 600px)": {
-              width: "90%",
+            '@media (max-width: 600px)': {
+              width: '90%',
               p: 2,
             },
           }}
         >
-          <h2 id="edit-product-modal-title">Editar Producto</h2>
-          <Box component="form" noValidate sx={{ mt: 3 }}>
+          <h2 id='edit-product-modal-title'>Editar Producto</h2>
+          <Box component='form' noValidate sx={{ mt: 3 }}>
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              id="editProductName"
-              label="Nombre del Producto"
-              name="editProductName"
-              autoComplete="off"
+              id='editProductName'
+              label='Nombre del Producto'
+              name='editProductName'
+              autoComplete='off'
               autoFocus
               value={editProductName}
               onChange={(e) => setEditProductName(e.target.value)}
               disabled={deletingImage}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             />
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel id="edit-select-brand-label">Marca</InputLabel>
+              <InputLabel id='edit-select-brand-label'>Marca</InputLabel>
               <Select
-                labelId="edit-select-brand-label"
-                id="edit-select-brand"
+                labelId='edit-select-brand-label'
+                id='edit-select-brand'
                 value={editSelectedBrand}
-                label="Marca"
+                label='Marca'
                 onChange={(e) => setEditSelectedBrand(e.target.value)}
                 disabled={deletingImage}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
                 MenuProps={{
@@ -1560,7 +1549,7 @@ const Products: React.FC = () => {
                   },
                 }}
               >
-                <MenuItem value="">
+                <MenuItem value=''>
                   <em>Seleccionar Marca</em>
                 </MenuItem>
                 {/* Ordena el array de marcas alfabéticamente por nombre */}
@@ -1576,54 +1565,54 @@ const Products: React.FC = () => {
             </FormControl>
 
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              id="editProductDescription"
-              label="Descripción"
-              name="editProductDescription"
-              autoComplete="off"
+              id='editProductDescription'
+              label='Descripción'
+              name='editProductDescription'
+              autoComplete='off'
               value={editProductDescription}
               onChange={(e) => setEditProductDescription(e.target.value)}
               disabled={deletingImage}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             />
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              type="number"
-              id="editProductPrice"
-              label="Precio"
-              name="editProductPrice"
-              autoComplete="off"
+              type='number'
+              id='editProductPrice'
+              label='Precio'
+              name='editProductPrice'
+              autoComplete='off'
               value={editProductPrice}
               onChange={(e) => setEditProductPrice(parseFloat(e.target.value))}
               disabled={deletingImage}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             />
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              id="editProductLink"
-              label="Enlace"
-              name="editProductLink"
-              autoComplete="off"
+              id='editProductLink'
+              label='Enlace'
+              name='editProductLink'
+              autoComplete='off'
               value={editProductLink}
               onChange={(e) => setEditProductLink(e.target.value)}
               disabled={deletingImage}
               sx={{
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
             />
@@ -1632,27 +1621,27 @@ const Products: React.FC = () => {
             products.find((p) => p.id === editProductId)?.image_url ? (
               <Box
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                 }}
               >
                 <img
                   src={
                     products.find((p) => p.id === editProductId)?.image_url ??
-                    ""
+                    ''
                   }
                   alt={editProductName}
                   style={{
-                    width: "100px",
-                    height: "100px",
-                    objectFit: "cover",
-                    marginBottom: "10px",
+                    width: '100px',
+                    height: '100px',
+                    objectFit: 'cover',
+                    marginBottom: '10px',
                   }}
                 />
                 <Button
-                  variant="outlined"
-                  color="error"
+                  variant='outlined'
+                  color='error'
                   onClick={async () => {
                     setDeletingImage(true);
                     const productToUpdate = products.find(
@@ -1660,19 +1649,19 @@ const Products: React.FC = () => {
                     );
                     if (productToUpdate && productToUpdate.image_url) {
                       const previousImagePath = productToUpdate.image_url
-                        .split("/")
+                        .split('/')
                         .slice(4)
-                        .join("/");
+                        .join('/');
                       await handleImageDelete(previousImagePath);
                       const { data, error } = await supabase
-                        .from("products")
+                        .from('products')
                         .update({ image_url: null })
-                        .eq("id", editProductId)
-                        .select("*");
+                        .eq('id', editProductId)
+                        .select('*');
 
                       if (error) {
                         console.error(
-                          "Error deleting image from product:",
+                          'Error deleting image from product:',
                           error
                         );
                       } else {
@@ -1693,14 +1682,14 @@ const Products: React.FC = () => {
                   {deletingImage ? (
                     <CircularProgress size={24} />
                   ) : (
-                    "Eliminar Imagen"
+                    'Eliminar Imagen'
                   )}
                 </Button>
               </Box>
             ) : (
               <FileInput
-                type="file"
-                accept="image/*"
+                type='file'
+                accept='image/*'
                 onChange={(e) =>
                   setEditProductImage(e.target.files ? e.target.files[0] : null)
                 }
@@ -1709,19 +1698,19 @@ const Products: React.FC = () => {
             )}
 
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel id="edit-select-category-label">Categoría</InputLabel>
+              <InputLabel id='edit-select-category-label'>Categoría</InputLabel>
               <Select
-                labelId="edit-select-category-label"
-                id="edit-select-category"
+                labelId='edit-select-category-label'
+                id='edit-select-category'
                 value={editSelectedCategory}
-                label="Categoría"
+                label='Categoría'
                 onChange={(e) =>
                   setEditSelectedCategory(e.target.value as number)
                 }
                 disabled={deletingImage}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
               >
@@ -1733,21 +1722,21 @@ const Products: React.FC = () => {
               </Select>
             </FormControl>
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel id="edit-select-subcategory-label">
+              <InputLabel id='edit-select-subcategory-label'>
                 Subcategoría
               </InputLabel>
               <Select
-                labelId="edit-select-subcategory-label"
-                id="edit-select-subcategory"
+                labelId='edit-select-subcategory-label'
+                id='edit-select-subcategory'
                 value={editSelectedSubcategory}
-                label="Subcategoría"
+                label='Subcategoría'
                 onChange={(e) =>
                   setEditSelectedSubcategory(e.target.value as number)
                 }
                 disabled={deletingImage}
                 sx={{
-                  "@media (max-width: 600px)": {
-                    width: "100%",
+                  '@media (max-width: 600px)': {
+                    width: '100%',
                   },
                 }}
               >
@@ -1772,13 +1761,13 @@ const Products: React.FC = () => {
                       onChange={(e) => setEditProductIsEdited(e.target.checked)}
                       disabled={deletingImage}
                       sx={{
-                        "@media (max-width: 600px)": {
-                          width: "100%",
+                        '@media (max-width: 600px)': {
+                          width: '100%',
                         },
                       }}
                     />
                   }
-                  label="Editado"
+                  label='Editado'
                 />
               )}
 
@@ -1798,11 +1787,11 @@ const Products: React.FC = () => {
                         if (updatedProduct) {
                           updatedProduct.isdeleted = e.target.checked;
                           const { error } = await supabase
-                            .from("products")
+                            .from('products')
                             .update({ isdeleted: e.target.checked })
-                            .eq("id", editProductId);
+                            .eq('id', editProductId);
                           if (error) {
-                            console.error("Error updating product:", error);
+                            console.error('Error updating product:', error);
                           } else {
                             setProducts(
                               products.map((p) =>
@@ -1814,43 +1803,43 @@ const Products: React.FC = () => {
                       }}
                       disabled={deletingImage}
                       sx={{
-                        "@media (max-width: 600px)": {
-                          width: "100%",
+                        '@media (max-width: 600px)': {
+                          width: '100%',
                         },
                       }}
                     />
                   }
-                  label="Eliminado"
+                  label='Eliminado'
                 />
               )}
           </Box>
 
           <DialogActions>
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               onClick={handleSaveEdit}
               startIcon={<SaveIcon />}
               sx={{
-                backgroundColor: "#1976d2",
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                borderRadius: "8px",
-                boxShadow: "0 3px 5px 2px rgba(25, 118, 210, .3)",
-                "&:hover": {
-                  backgroundColor: "#115293",
-                  boxShadow: "0 6px 10px 4px rgba(25, 118, 210, .3)",
+                backgroundColor: '#1976d2',
+                color: 'white',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                borderRadius: '8px',
+                boxShadow: '0 3px 5px 2px rgba(25, 118, 210, .3)',
+                '&:hover': {
+                  backgroundColor: '#115293',
+                  boxShadow: '0 6px 10px 4px rgba(25, 118, 210, .3)',
                 },
-                "&:active": {
-                  backgroundColor: "#0d3a6a",
+                '&:active': {
+                  backgroundColor: '#0d3a6a',
                 },
-                "&:focus": {
-                  outline: "none",
-                  boxShadow: "0 0 0 4px rgba(25, 118, 210, .5)",
+                '&:focus': {
+                  outline: 'none',
+                  boxShadow: '0 0 0 4px rgba(25, 118, 210, .5)',
                 },
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
               disabled={deletingImage}
@@ -1858,30 +1847,30 @@ const Products: React.FC = () => {
               Guardar
             </Button>
             <Button
-              variant="contained"
-              color="secondary"
+              variant='contained'
+              color='secondary'
               onClick={resetEditState}
               startIcon={<CancelIcon />}
               sx={{
-                backgroundColor: "red",
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                borderRadius: "8px",
-                boxShadow: "0 3px 5px 2px rgba(255, 0, 0, .3)",
-                "&:hover": {
-                  backgroundColor: "darkred",
-                  boxShadow: "0 6px 10px 4px rgba(255, 0, 0, .3)",
+                backgroundColor: 'red',
+                color: 'white',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                borderRadius: '8px',
+                boxShadow: '0 3px 5px 2px rgba(255, 0, 0, .3)',
+                '&:hover': {
+                  backgroundColor: 'darkred',
+                  boxShadow: '0 6px 10px 4px rgba(255, 0, 0, .3)',
                 },
-                "&:active": {
-                  backgroundColor: "firebrick",
+                '&:active': {
+                  backgroundColor: 'firebrick',
                 },
-                "&:focus": {
-                  outline: "none",
-                  boxShadow: "0 0 0 4px rgba(255, 0, 0, .5)",
+                '&:focus': {
+                  outline: 'none',
+                  boxShadow: '0 0 0 4px rgba(255, 0, 0, .5)',
                 },
-                "@media (max-width: 600px)": {
-                  width: "100%",
+                '@media (max-width: 600px)': {
+                  width: '100%',
                 },
               }}
               disabled={deletingImage}
