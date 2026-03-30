@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login';
 import Categories from './components/Categories';
 import Subcategories from './components/Subcategories';
@@ -78,7 +78,6 @@ const App: React.FC = () => {
                 </PrivateRoute>
               }
             />
-            {/* Otras rutas pueden ir aquí */}
           </Routes>
         </Box>
       </Router>
