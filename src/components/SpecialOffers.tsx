@@ -24,6 +24,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { supabase } from "../supabaseClient";
+import { compressImage } from "../utils/compress";
 
 interface SpecialOffer {
   id: number;
@@ -85,18 +86,27 @@ const fetchSpecialOffers = async () => {
 };
 
 const handleImageUpload = async (file: File) => {
+  const compressedFile = await compressImage(file, {
+    maxSizeMB: 0.5,
+    maxWidthOrHeight: 1600,
+    useWebWorker: true,
+    fileType: "image/webp",
+  });
+
   const safeFileName = file.name
     .toLowerCase()
+    .replace(/\.[^/.]+$/, "")
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9.-]/g, "");
 
-  const filePath = `public/${Date.now()}-${safeFileName}`;
+  const filePath = `public/${Date.now()}-${safeFileName}.webp`;
 
   const { data, error } = await supabase.storage
     .from("special_offers")
-    .upload(filePath, file, {
+    .upload(filePath, compressedFile, {
       cacheControl: "31536000",
       upsert: true,
+      contentType: "image/webp",
     });
 
   if (error) {
@@ -609,15 +619,17 @@ const handleDeleteOffer = async (id: number) => {
                 <TableCell sx={{ padding: "8px" }}>{offer.expiry_date}</TableCell>
                 <TableCell sx={{ padding: "8px" }}>
                   {offer.image_url && (
-                    <img
-                      src={offer.image_url}
-                      alt={offer.name}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                      }}
-                    />
+                   <img
+  src={offer.image_url}
+  alt={offer.name}
+  loading="lazy"
+  decoding="async"
+  style={{
+    width: "50px",
+    height: "50px",
+    objectFit: "cover",
+  }}
+/>
                   )}
                 </TableCell>
                 <TableCell sx={{ padding: "8px" }}>

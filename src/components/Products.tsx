@@ -39,6 +39,7 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 import { copyLinksToClipboard, exportToExcel } from '../utils/exportToExcel';
 
 import styled from 'styled-components';
+import { compressImage } from '../utils/compress';
 
 const FileInput = styled.input`
   margin-top: 16px;
@@ -330,18 +331,27 @@ const fetchProducts = async () => {
   };
 
 const handleImageUpload = async (file: File) => {
+  const compressedFile = await compressImage(file, {
+    maxSizeMB: 0.25, // máximo aprox 250KB
+    maxWidthOrHeight: 1000,
+    useWebWorker: true,
+    fileType: 'image/webp',
+  });
+
   const safeFileName = file.name
     .toLowerCase()
+    .replace(/\.[^/.]+$/, '')
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9.-]/g, '');
 
-  const filePath = `public/${Date.now()}-${safeFileName}`;
+  const filePath = `public/${Date.now()}-${safeFileName}.webp`;
 
   const { data, error } = await supabase.storage
     .from('products')
-    .upload(filePath, file, {
+    .upload(filePath, compressedFile, {
       cacheControl: '31536000',
       upsert: true,
+      contentType: 'image/webp',
     });
 
   if (error) {
@@ -1695,18 +1705,20 @@ const handleDeleteProduct = async (id: number) => {
                 }}
               >
                 <img
-                  src={
-                    products.find((p) => p.id === editProductId)?.image_url ??
-                    ''
-                  }
-                  alt={editProductName}
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    objectFit: 'cover',
-                    marginBottom: '10px',
-                  }}
-                />
+  src={
+    products.find((p) => p.id === editProductId)?.image_url ??
+    ''
+  }
+  alt={editProductName}
+  loading="lazy"
+  decoding="async"
+  style={{
+    width: '100px',
+    height: '100px',
+    objectFit: 'cover',
+    marginBottom: '10px',
+  }}
+/>
                 <Button
                   variant='outlined'
                   color='error'
