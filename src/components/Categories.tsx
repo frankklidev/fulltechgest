@@ -24,44 +24,62 @@ const Categories: React.FC = () => {
     fetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('categories').select('*');
-    if (error) {
-      console.error(error);
-    } else {
-      setCategories(data || []);
-    }
-    setLoading(false);
-  };
+const fetchCategories = async () => {
+  setLoading(true);
 
-  const handleAddCategory = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name', { ascending: true });
 
-    const categoryExists = categories.some(
-      (category) => category.name.toLowerCase() === categoryName.toLowerCase()
+  if (error) {
+    console.error('Error fetching categories:', error);
+  } else {
+    setCategories(data || []);
+  }
+
+  setLoading(false);
+};
+
+const handleAddCategory = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  const trimmedName = categoryName.trim();
+
+  if (!trimmedName) {
+    setValidationError('El nombre de la categoría es obligatorio.');
+    return;
+  }
+
+  const categoryExists = categories.some(
+    (category) => category.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (categoryExists) {
+    setValidationError('Una categoría con este nombre ya existe.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('categories')
+    .insert([{ name: trimmedName }])
+    .select('id, name')
+    .single();
+
+  if (error) {
+    console.error('Error adding category:', error);
+  } else if (data) {
+    setCategories((prev) =>
+      [...prev, data].sort((a, b) => a.name.localeCompare(b.name))
     );
+    setCategoryName('');
+    setValidationError('');
+  }
 
-    if (categoryExists) {
-      setValidationError('Una categoría con este nombre ya existe.');
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await supabase
-      .from('categories')
-      .insert([{ name: categoryName }])
-      .single();
-    if (error) {
-      console.error(error);
-    } else {
-      setCategoryName('');
-      setValidationError('');
-      fetchCategories();
-    }
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   const handleEditCategory = (id: number, name: string) => {
     setEditCategoryId(id);
@@ -69,36 +87,57 @@ const Categories: React.FC = () => {
     setEditOpen(true);
   };
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('categories')
-      .update({ name: editCategoryName })
-      .eq('id', editCategoryId);
-    if (error) {
-      console.error(error);
-    } else {
-      setEditCategoryId(null);
-      setEditCategoryName('');
-      fetchCategories();
-      setEditOpen(false);
-    }
-    setLoading(false);
-  };
+const handleSaveEdit = async () => {
+  if (!editCategoryId) return;
 
-  const handleDeleteCategory = async (id: number) => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
-    if (error) {
-      console.error(error);
-    } else {
-      fetchCategories();
-    }
-    setLoading(false);
-  };
+  const trimmedName = editCategoryName.trim();
+
+  if (!trimmedName) return;
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('categories')
+    .update({ name: trimmedName })
+    .eq('id', editCategoryId)
+    .select('id, name')
+    .single();
+
+  if (error) {
+    console.error('Error updating category:', error);
+  } else if (data) {
+    setCategories((prev) =>
+      prev
+        .map((category) =>
+          category.id === editCategoryId ? data : category
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+
+    setEditCategoryId(null);
+    setEditCategoryName('');
+    setEditOpen(false);
+  }
+
+  setLoading(false);
+};
+
+const handleDeleteCategory = async (id: number) => {
+  setLoading(true);
+
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting category:', error);
+  } else {
+    setCategories((prev) => prev.filter((category) => category.id !== id));
+  }
+
+  setLoading(false);
+};
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);

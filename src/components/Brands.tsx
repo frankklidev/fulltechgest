@@ -41,55 +41,105 @@ const Brands: React.FC = () => {
     fetchBrands();
   }, []);
 
-  const fetchBrands = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('brand').select('*');
-    if (error) console.error('Error fetching brands:', error);
-    else setBrands(data || []);
-    setLoading(false);
-  };
+const fetchBrands = async () => {
+  setLoading(true);
 
-  const handleAddBrand = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+  const { data, error } = await supabase
+    .from('brand')
+    .select('id, name')
+    .order('name', { ascending: true });
 
-    const { data, error } = await supabase
-      .from('brand')
-      .insert([{ name: brandName }])
-      .select('*');
-    if (error) {
-      console.error('Error adding brand:', error);
-      alert('Error adding brand: ' + error.message);
-    } else if (data && data.length > 0) {
-      setBrands([...brands, data[0]]);
-      setBrandName('');
-      setOpen(false);
-    }
-    setLoading(false);
-  };
+  if (error) console.error('Error fetching brands:', error);
+  else setBrands(data || []);
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
+  setLoading(false);
+};
 
-    const { data, error } = await supabase
-      .from('brand')
-      .update({ name: editBrandName })
-      .eq('id', editBrandId)
-      .select('*');
+const handleAddBrand = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    if (error) {
-      console.error('Error updating brand:', error);
-    } else if (data && data.length > 0) {
-      setBrands(
-        brands.map((brand) =>
-          brand.id === editBrandId ? { ...brand, ...data[0] } : brand
-        )
-      );
-      resetEditState();
-      setModalOpen(false);
-    }
-    setLoading(false);
-  };
+  const trimmedName = brandName.trim();
+
+  if (!trimmedName) {
+    alert('El nombre de la marca es obligatorio.');
+    return;
+  }
+
+  const brandExists = brands.some(
+    (brand) => brand.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (brandExists) {
+    alert('Una marca con este nombre ya existe.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('brand')
+    .insert([{ name: trimmedName }])
+    .select('id, name')
+    .single();
+
+  if (error) {
+    console.error('Error adding brand:', error);
+    alert('Error adding brand: ' + error.message);
+  } else if (data) {
+    setBrands((prev) =>
+      [...prev, data].sort((a, b) => a.name.localeCompare(b.name))
+    );
+    setBrandName('');
+    setOpen(false);
+  }
+
+  setLoading(false);
+};
+
+const handleSaveEdit = async () => {
+  if (!editBrandId) return;
+
+  const trimmedName = editBrandName.trim();
+
+  if (!trimmedName) {
+    alert('El nombre de la marca es obligatorio.');
+    return;
+  }
+
+  const brandExists = brands.some(
+    (brand) =>
+      brand.id !== editBrandId &&
+      brand.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (brandExists) {
+    alert('Una marca con este nombre ya existe.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('brand')
+    .update({ name: trimmedName })
+    .eq('id', editBrandId)
+    .select('id, name')
+    .single();
+
+  if (error) {
+    console.error('Error updating brand:', error);
+  } else if (data) {
+    setBrands((prev) =>
+      prev
+        .map((brand) => (brand.id === editBrandId ? data : brand))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+
+    resetEditState();
+  }
+
+  setLoading(false);
+};
 
   const handleEditBrand = (brand: Brand) => {
     setEditBrandId(brand.id);
@@ -103,19 +153,19 @@ const Brands: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDeleteBrand = async (id: number) => {
-    setLoading(true);
+const handleDeleteBrand = async (id: number) => {
+  setLoading(true);
 
-    const { error } = await supabase.from('brand').delete().eq('id', id);
+  const { error } = await supabase.from('brand').delete().eq('id', id);
 
-    if (error) {
-      console.error('Error deleting brand:', error);
-    } else {
-      setBrands(brands.filter((brand) => brand.id !== id));
-    }
+  if (error) {
+    console.error('Error deleting brand:', error);
+  } else {
+    setBrands((prev) => prev.filter((brand) => brand.id !== id));
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   const handleClickOpen = () => {
     setOpen(true);

@@ -54,80 +54,120 @@ const Testimonials: React.FC = () => {
     fetchTestimonials();
   }, []);
 
-  const fetchTestimonials = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('testimonials').select('*');
-    if (error) console.error('Error fetching testimonials:', error);
-    else setTestimonials(data || []);
-    setLoading(false);
-  };
+const fetchTestimonials = async () => {
+  setLoading(true);
 
-  const handleAddTestimonial = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('id, name, review, rating_number, created_at, aprove')
+    .order('created_at', { ascending: false });
 
-    if (ratingNumber < 1 || ratingNumber > 5) {
-      setError('La calificación debe estar entre 1 y 5.');
-      setLoading(false);
-      return;
-    }
+  if (error) console.error('Error fetching testimonials:', error);
+  else setTestimonials(data || []);
 
-    const { data, error } = await supabase
-      .from('testimonials')
-      .insert([{ name, review, rating_number: ratingNumber, aprove: false }])
-      .select('*');
-    if (error) {
-      console.error('Error adding testimonial:', error);
-      setError('Error adding testimonial: ' + error.message);
-    } else if (data && data.length > 0) {
-      setTestimonials([...testimonials, data[0]]);
-      setName('');
-      setReview('');
-      setRatingNumber(0);
-      setOpen(false);
-    }
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
-    setError('');
+const handleAddTestimonial = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
 
-    if (editRatingNumber < 1 || editRatingNumber > 5) {
-      setError('La calificación debe estar entre 1 y 5.');
-      setLoading(false);
-      return;
-    }
+  const trimmedName = name.trim();
+  const trimmedReview = review.trim();
 
-    const { data, error } = await supabase
-      .from('testimonials')
-      .update({
-        name: editName,
-        review: editReview,
-        rating_number: editRatingNumber,
-      })
-      .eq('id', editTestimonialId)
-      .select('*');
+  setError('');
 
-    if (error) {
-      console.error('Error updating testimonial:', error);
-      setError('Error updating testimonial: ' + error.message);
-    } else if (data && data.length > 0) {
-      setTestimonials(
-        testimonials.map((testimonial) =>
-          testimonial.id === editTestimonialId
-            ? { ...testimonial, ...data[0] }
-            : testimonial
-        )
-      );
-      resetEditState();
-      setModalOpen(false);
-    }
-    setLoading(false);
-  };
+  if (!trimmedName || !trimmedReview) {
+    setError('Completa nombre y reseña.');
+    return;
+  }
+
+  if (ratingNumber < 1 || ratingNumber > 5 || Number.isNaN(ratingNumber)) {
+    setError('La calificación debe estar entre 1 y 5.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('testimonials')
+    .insert([
+      {
+        name: trimmedName,
+        review: trimmedReview,
+        rating_number: ratingNumber,
+        aprove: false,
+      },
+    ])
+    .select('id, name, review, rating_number, created_at, aprove')
+    .single();
+
+  if (error) {
+    console.error('Error adding testimonial:', error);
+    setError('Error adding testimonial: ' + error.message);
+  } else if (data) {
+    setTestimonials((prev) => [data, ...prev]);
+
+    setName('');
+    setReview('');
+    setRatingNumber(0);
+    setOpen(false);
+  }
+
+  setLoading(false);
+};
+
+const handleSaveEdit = async () => {
+  if (!editTestimonialId) return;
+
+  const trimmedName = editName.trim();
+  const trimmedReview = editReview.trim();
+
+  setError('');
+
+  if (!trimmedName || !trimmedReview) {
+    setError('Completa nombre y reseña.');
+    return;
+  }
+
+  if (
+    editRatingNumber < 1 ||
+    editRatingNumber > 5 ||
+    Number.isNaN(editRatingNumber)
+  ) {
+    setError('La calificación debe estar entre 1 y 5.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('testimonials')
+    .update({
+      name: trimmedName,
+      review: trimmedReview,
+      rating_number: editRatingNumber,
+    })
+    .eq('id', editTestimonialId)
+    .select('id, name, review, rating_number, created_at, aprove')
+    .single();
+
+  if (error) {
+    console.error('Error updating testimonial:', error);
+    setError('Error updating testimonial: ' + error.message);
+  } else if (data) {
+    setTestimonials((prev) =>
+      prev.map((testimonial) =>
+        testimonial.id === editTestimonialId ? data : testimonial
+      )
+    );
+
+    resetEditState();
+  }
+
+  setLoading(false);
+};
 
   const handleEditTestimonial = (testimonial: Testimonial) => {
     setEditTestimonialId(testimonial.id);
@@ -145,39 +185,50 @@ const Testimonials: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleApproveTestimonial = async (
-    id: number,
-    currentValue: boolean
-  ) => {
-    setLoading(true);
+const handleApproveTestimonial = async (
+  id: number,
+  currentValue: boolean
+) => {
+  setLoading(true);
 
-    const { data, error } = await supabase
-      .from('testimonials')
-      .update({ aprove: !currentValue })
-      .eq('id', id)
-      .select('*');
+  const { data, error } = await supabase
+    .from('testimonials')
+    .update({ aprove: !currentValue })
+    .eq('id', id)
+    .select('id, name, review, rating_number, created_at, aprove')
+    .single();
 
-    if (error) {
-      console.error('Error updating testimonial:', error);
-    } else if (data && data.length > 0) {
-      setTestimonials((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...data[0] } : t))
-      );
-    }
+  if (error) {
+    console.error('Error updating testimonial:', error);
+  } else if (data) {
+    setTestimonials((prev) =>
+      prev.map((testimonial) =>
+        testimonial.id === id ? data : testimonial
+      )
+    );
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
-  const handleDeleteTestimonial = async (id: number) => {
-    setLoading(true);
-    const { error } = await supabase.from('testimonials').delete().eq('id', id);
-    if (error) console.error('Error deleting testimonial:', error);
-    else
-      setTestimonials(
-        testimonials.filter((testimonial) => testimonial.id !== id)
-      );
-    setLoading(false);
-  };
+const handleDeleteTestimonial = async (id: number) => {
+  setLoading(true);
+
+  const { error } = await supabase
+    .from('testimonials')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting testimonial:', error);
+  } else {
+    setTestimonials((prev) =>
+      prev.filter((testimonial) => testimonial.id !== id)
+    );
+  }
+
+  setLoading(false);
+};
 
   const handleClickOpen = () => {
     setOpen(true);

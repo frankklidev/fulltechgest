@@ -61,36 +61,65 @@ const SpecialOffers: React.FC = () => {
     fetchSpecialOffers();
   }, []);
 
-  const fetchSpecialOffers = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("special_offers").select("*");
-    if (error) console.error("Error fetching special offers:", error);
-    else setSpecialOffers(data || []);
-    setLoading(false);
-  };
+const fetchSpecialOffers = async () => {
+  setLoading(true);
 
-  const handleImageUpload = async (file: File) => {
-    const { data, error } = await supabase.storage
-      .from("special_offers")
-      .upload(`public/${file.name}`, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-    if (error) {
-      console.error("Error uploading image:", error);
-      return null;
-    }
-    return `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/special_offers/${data.path}`;
-  };
+  const { data, error } = await supabase
+    .from("special_offers")
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      start_date,
+      expiry_date,
+      image_url,
+      is_active
+    `)
+    .order("start_date", { ascending: false });
 
-  const handleImageDelete = async (imagePath: string) => {
-    const { error } = await supabase.storage
-      .from("special_offers")
-      .remove([imagePath]);
-    if (error) {
-      console.error("Error deleting image:", error);
-    }
-  };
+  if (error) console.error("Error fetching special offers:", error);
+  else setSpecialOffers(data || []);
+
+  setLoading(false);
+};
+
+const handleImageUpload = async (file: File) => {
+  const safeFileName = file.name
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9.-]/g, "");
+
+  const filePath = `public/${Date.now()}-${safeFileName}`;
+
+  const { data, error } = await supabase.storage
+    .from("special_offers")
+    .upload(filePath, file, {
+      cacheControl: "31536000",
+      upsert: true,
+    });
+
+  if (error) {
+    console.error("Error uploading image:", error);
+    return null;
+  }
+
+  return `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/special_offers/${data.path}`;
+};
+
+const handleImageDelete = async (imageUrl: string) => {
+  const imagePath = imageUrl.split("/special_offers/").pop();
+
+  if (!imagePath) return;
+
+  const { error } = await supabase.storage
+    .from("special_offers")
+    .remove([imagePath]);
+
+  if (error) {
+    console.error("Error deleting image:", error);
+  }
+};
 
   // const ensureNoActiveOffer = async (currentOfferId: number | null = null) => {
   //   const { data: activeOffers } = await supabase
@@ -106,107 +135,151 @@ const SpecialOffers: React.FC = () => {
   //   return activeOffers?.length === 0;
   // };
 
-  const handleAddOffer = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-  
-    // Eliminado la verificación para permitir múltiples ofertas activas
-  
-    let imageUrl = "";
-    if (image) {
-      const imagePath = await handleImageUpload(image);
-      if (imagePath) {
-        imageUrl = imagePath;
-      }
+const handleAddOffer = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  const trimmedName = name.trim();
+  const trimmedDescription = description.trim();
+  const trimmedPrice = price.trim();
+
+  if (!trimmedName || !trimmedDescription || !trimmedPrice) {
+    alert("Completa nombre, descripción y precio.");
+    return;
+  }
+
+  setLoading(true);
+
+  let imageUrl = "";
+
+  if (image) {
+    const uploadedImageUrl = await handleImageUpload(image);
+
+    if (uploadedImageUrl) {
+      imageUrl = uploadedImageUrl;
     }
-  
-    const { data, error } = await supabase
-      .from("special_offers")
-      .insert([
-        {
-          name,
-          description,
-          price,
-          start_date: startDate,
-          expiry_date: expiryDate,
-          image_url: imageUrl,
-          is_active: isActive,
-        },
-      ])
-      .select("*");
-  
-    if (error) {
-      console.error("Error adding offer:", error);
-      alert("Error adding offer: " + error.message);
-    } else if (data && data.length > 0) {
-      setSpecialOffers([...specialOffers, data[0]]);
-      setName("");
-      setDescription("");
-      setPrice("");
-      setStartDate("");
-      setExpiryDate("");
-      setImage(null);
-      setIsActive(true);
-      setOpen(false);
-    }
-    setLoading(false);
-  };
+  }
+
+  const { data, error } = await supabase
+    .from("special_offers")
+    .insert([
+      {
+        name: trimmedName,
+        description: trimmedDescription,
+        price: trimmedPrice,
+        start_date: startDate,
+        expiry_date: expiryDate,
+        image_url: imageUrl,
+        is_active: isActive,
+      },
+    ])
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      start_date,
+      expiry_date,
+      image_url,
+      is_active
+    `)
+    .single();
+
+  if (error) {
+    console.error("Error adding offer:", error);
+    alert("Error adding offer: " + error.message);
+  } else if (data) {
+    setSpecialOffers((prev) =>
+      [data, ...prev].sort((a, b) =>
+        b.start_date.localeCompare(a.start_date)
+      )
+    );
+
+    setName("");
+    setDescription("");
+    setPrice("");
+    setStartDate("");
+    setExpiryDate("");
+    setImage(null);
+    setIsActive(true);
+    setOpen(false);
+  }
+
+  setLoading(false);
+};
   
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
-  
-    // Eliminado la verificación para permitir múltiples ofertas activas
-  
-    let imageUrl = "";
-    let imagePath: string | null = null;
-    const currentOffer = specialOffers.find(
-      (offer) => offer.id === editOfferId
+const handleSaveEdit = async () => {
+  if (!editOfferId) return;
+
+  const trimmedName = editName.trim();
+  const trimmedDescription = editDescription.trim();
+  const trimmedPrice = editPrice.trim();
+
+  if (!trimmedName || !trimmedDescription || !trimmedPrice) {
+    alert("Completa nombre, descripción y precio.");
+    return;
+  }
+
+  setLoading(true);
+
+  let imageUrl = "";
+
+  const currentOffer = specialOffers.find(
+    (offer) => offer.id === editOfferId
+  );
+
+  if (editImage) {
+    if (currentOffer?.image_url) {
+      await handleImageDelete(currentOffer.image_url);
+    }
+
+    const uploadedImageUrl = await handleImageUpload(editImage);
+
+    if (uploadedImageUrl) {
+      imageUrl = uploadedImageUrl;
+    }
+  } else {
+    imageUrl = currentOffer?.image_url || "";
+  }
+
+  const { data, error } = await supabase
+    .from("special_offers")
+    .update({
+      name: trimmedName,
+      description: trimmedDescription,
+      price: trimmedPrice,
+      start_date: editStartDate,
+      expiry_date: editExpiryDate,
+      image_url: imageUrl,
+      is_active: editIsActive,
+    })
+    .eq("id", editOfferId)
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      start_date,
+      expiry_date,
+      image_url,
+      is_active
+    `)
+    .single();
+
+  if (error) {
+    console.error("Error updating offer:", error);
+  } else if (data) {
+    setSpecialOffers((prev) =>
+      prev
+        .map((offer) => (offer.id === editOfferId ? data : offer))
+        .sort((a, b) => b.start_date.localeCompare(a.start_date))
     );
-  
-    if (editImage) {
-      if (currentOffer?.image_url) {
-        const previousImagePath = currentOffer.image_url
-          .split("/")
-          .slice(4)
-          .join("/");
-        await handleImageDelete(previousImagePath);
-      }
-      imagePath = await handleImageUpload(editImage);
-      if (imagePath) {
-        imageUrl = imagePath;
-      }
-    } else {
-      imageUrl = currentOffer?.image_url || "";
-    }
-  
-    const { data, error } = await supabase
-      .from("special_offers")
-      .update({
-        name: editName,
-        description: editDescription,
-        price: editPrice,
-        start_date: editStartDate,
-        expiry_date: editExpiryDate,
-        image_url: imageUrl,
-        is_active: editIsActive,
-      })
-      .eq("id", editOfferId)
-      .select("*");
-  
-    if (error) {
-      console.error("Error updating offer:", error);
-    } else if (data && data.length > 0) {
-      setSpecialOffers(
-        specialOffers.map((offer) =>
-          offer.id === editOfferId ? { ...offer, ...data[0] } : offer
-        )
-      );
-      resetEditState();
-      setModalOpen(false);
-    }
-    setLoading(false);
-  };
+
+    resetEditState();
+  }
+
+  setLoading(false);
+};
   
 
   const handleEditOffer = (offer: SpecialOffer) => {
@@ -233,23 +306,28 @@ const SpecialOffers: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDeleteOffer = async (id: number) => {
-    setLoading(true);
-    const offerToDelete = specialOffers.find((offer) => offer.id === id);
+const handleDeleteOffer = async (id: number) => {
+  setLoading(true);
 
-    if (offerToDelete?.image_url) {
-      const imagePath = offerToDelete.image_url.split("/").slice(4).join("/");
-      await handleImageDelete(imagePath);
-    }
+  const offerToDelete = specialOffers.find((offer) => offer.id === id);
 
-    const { error } = await supabase
-      .from("special_offers")
-      .delete()
-      .eq("id", id);
-    if (error) console.error("Error deleting offer:", error);
-    else setSpecialOffers(specialOffers.filter((offer) => offer.id !== id));
-    setLoading(false);
-  };
+  if (offerToDelete?.image_url) {
+    await handleImageDelete(offerToDelete.image_url);
+  }
+
+  const { error } = await supabase
+    .from("special_offers")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting offer:", error);
+  } else {
+    setSpecialOffers((prev) => prev.filter((offer) => offer.id !== id));
+  }
+
+  setLoading(false);
+};
 
   const handleClickOpen = () => {
     setOpen(true);

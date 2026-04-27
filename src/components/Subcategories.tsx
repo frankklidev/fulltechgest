@@ -59,50 +59,79 @@ const Subcategories: React.FC = () => {
     fetchSubcategories();
   }, []);
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('categories').select('*');
-    if (error) console.error('Error fetching categories:', error);
-    else setCategories(data || []);
-    setLoading(false);
-  };
+const fetchCategories = async () => {
+  setLoading(true);
 
-  const fetchSubcategories = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('subcategories').select('*');
-    if (error) console.error('Error fetching subcategories:', error);
-    else setSubcategories(data || []);
-    setLoading(false);
-  };
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name', { ascending: true });
 
-  const handleAddSubcategory = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+  if (error) console.error('Error fetching categories:', error);
+  else setCategories(data || []);
 
-    const subcategoryExists = subcategories.some(
-      (subcategory) => subcategory.name.toLowerCase() === subcategoryName.toLowerCase()
+  setLoading(false);
+};
+
+const fetchSubcategories = async () => {
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('subcategories')
+    .select('id, name, category_id')
+    .order('name', { ascending: true });
+
+  if (error) console.error('Error fetching subcategories:', error);
+  else setSubcategories(data || []);
+
+  setLoading(false);
+};
+
+const handleAddSubcategory = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
+
+  const trimmedName = subcategoryName.trim();
+
+  if (!trimmedName) {
+    setValidationError('El nombre de la subcategoría es obligatorio.');
+    return;
+  }
+
+  const subcategoryExists = subcategories.some(
+    (subcategory) =>
+      subcategory.name.toLowerCase() === trimmedName.toLowerCase() &&
+      subcategory.category_id === selectedCategory
+  );
+
+  if (subcategoryExists) {
+    setValidationError('Ya existe una subcategoría con este nombre en esa categoría.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('subcategories')
+    .insert([{ name: trimmedName, category_id: selectedCategory }])
+    .select('id, name, category_id')
+    .single();
+
+  if (error) {
+    console.error('Error adding subcategory:', error);
+  } else if (data) {
+    setSubcategories((prev) =>
+      [...prev, data].sort((a, b) => a.name.localeCompare(b.name))
     );
 
-    if (subcategoryExists) {
-      setValidationError('Una subcategoría con este nombre ya existe.');
-      setLoading(false);
-      return;
-    }
+    setSubcategoryName('');
+    setValidationError('');
+    setOpen(false);
+  }
 
-    const { error } = await supabase
-      .from('subcategories')
-      .insert([{ name: subcategoryName, category_id: selectedCategory }])
-      .single();
-    if (error) {
-      console.error('Error adding subcategory:', error);
-    } else {
-      setSubcategoryName('');
-      setValidationError('');
-      fetchSubcategories();
-      setOpen(false);
-    }
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   const handleEditSubcategory = (id: number, name: string, categoryId: number) => {
     setEditSubcategoryId(id);
@@ -111,33 +140,75 @@ const Subcategories: React.FC = () => {
     setEditOpen(true);
   };
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('subcategories')
-      .update({ name: editSubcategoryName, category_id: editSelectedCategory })
-      .eq('id', editSubcategoryId);
-    if (error) {
-      console.error('Error updating subcategory:', error);
-    } else {
-      setEditSubcategoryId(null);
-      setEditSubcategoryName('');
-      fetchSubcategories();
-      setEditOpen(false);
-    }
-    setLoading(false);
-  };
+const handleSaveEdit = async () => {
+  if (!editSubcategoryId) return;
 
-  const handleDeleteSubcategory = async (id: number) => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('subcategories')
-      .delete()
-      .eq('id', id);
-    if (error) console.error('Error deleting subcategory:', error);
-    else fetchSubcategories();
-    setLoading(false);
-  };
+  const trimmedName = editSubcategoryName.trim();
+
+  if (!trimmedName) return;
+
+  const subcategoryExists = subcategories.some(
+    (subcategory) =>
+      subcategory.id !== editSubcategoryId &&
+      subcategory.name.toLowerCase() === trimmedName.toLowerCase() &&
+      subcategory.category_id === editSelectedCategory
+  );
+
+  if (subcategoryExists) {
+    setValidationError('Ya existe una subcategoría con este nombre en esa categoría.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await supabase
+    .from('subcategories')
+    .update({
+      name: trimmedName,
+      category_id: editSelectedCategory,
+    })
+    .eq('id', editSubcategoryId)
+    .select('id, name, category_id')
+    .single();
+
+  if (error) {
+    console.error('Error updating subcategory:', error);
+  } else if (data) {
+    setSubcategories((prev) =>
+      prev
+        .map((subcategory) =>
+          subcategory.id === editSubcategoryId ? data : subcategory
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+
+    setEditSubcategoryId(null);
+    setEditSubcategoryName('');
+    setValidationError('');
+    setEditOpen(false);
+  }
+
+  setLoading(false);
+};
+
+const handleDeleteSubcategory = async (id: number) => {
+  setLoading(true);
+
+  const { error } = await supabase
+    .from('subcategories')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting subcategory:', error);
+  } else {
+    setSubcategories((prev) =>
+      prev.filter((subcategory) => subcategory.id !== id)
+    );
+  }
+
+  setLoading(false);
+};
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);

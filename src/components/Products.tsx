@@ -161,24 +161,35 @@ const Products: React.FC = () => {
     return data.length > 0;
   };
 
-  const fetchCategories = async () => {
-    const { data, error } = await supabase.from('categories').select('*');
-    console.log('las categorias', data);
-    if (error) console.error('Error fetching categories:', error);
-    else setCategories(data || []);
-  };
+const fetchCategories = async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name', { ascending: true });
 
-  const fetchSubcategories = async () => {
-    const { data, error } = await supabase.from('subcategories').select('*');
-    if (error) console.error('Error fetching subcategories:', error);
-    else setSubcategories(data || []);
-  };
+  if (error) console.error('Error fetching categories:', error);
+  else setCategories(data || []);
+};
 
-  const fetchBrands = async () => {
-    const { data, error } = await supabase.from('brand').select('*');
-    if (error) console.error('Error fetching brands:', error);
-    else setBrands(data || []);
-  };
+const fetchSubcategories = async () => {
+  const { data, error } = await supabase
+    .from('subcategories')
+    .select('id, name, category_id')
+    .order('name', { ascending: true });
+
+  if (error) console.error('Error fetching subcategories:', error);
+  else setSubcategories(data || []);
+};
+
+const fetchBrands = async () => {
+  const { data, error } = await supabase
+    .from('brand')
+    .select('id, name')
+    .order('name', { ascending: true });
+
+  if (error) console.error('Error fetching brands:', error);
+  else setBrands(data || []);
+};
 
   const handleDownloadImage = async (imageUrl: string, imageName: string) => {
     try {
@@ -200,13 +211,31 @@ const Products: React.FC = () => {
     }
   };
 
-  const fetchProducts = async () => {
-    setDataLoading(true);
-    const { data, error } = await supabase.from('products').select('*');
-    if (error) console.error('Error fetching products:', error);
-    else setProducts(data || []);
-    setDataLoading(false);
-  };
+const fetchProducts = async () => {
+  setDataLoading(true);
+
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      link,
+      category_id,
+      subcategory_id,
+      image_url,
+      isedited,
+      isdeleted,
+      brand_id
+    `)
+    .order('name', { ascending: true });
+
+  if (error) console.error('Error fetching products:', error);
+  else setProducts(data || []);
+
+  setDataLoading(false);
+};
   const handleExportToExcel = () => {
     // Filtrar los productos activos
     const activeProducts = products.filter((product) => !product.isdeleted);
@@ -300,19 +329,28 @@ const Products: React.FC = () => {
     exportToExcel(exportData);
   };
 
-  const handleImageUpload = async (file: File) => {
-    const { data, error } = await supabase.storage
-      .from('products')
-      .upload(`public/${file.name}`, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-    if (error) {
-      console.error('Error uploading image:', error);
-      return null;
-    }
-    return data.path;
-  };
+const handleImageUpload = async (file: File) => {
+  const safeFileName = file.name
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9.-]/g, '');
+
+  const filePath = `public/${Date.now()}-${safeFileName}`;
+
+  const { data, error } = await supabase.storage
+    .from('products')
+    .upload(filePath, file, {
+      cacheControl: '31536000',
+      upsert: true,
+    });
+
+  if (error) {
+    console.error('Error uploading image:', error);
+    return null;
+  }
+
+  return data.path;
+};
 
   const handleImageDelete = async (imagePath: string) => {
     const { error } = await supabase.storage
@@ -323,131 +361,157 @@ const Products: React.FC = () => {
     }
   };
 
-  const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
+const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  setLoading(true);
 
-    // Validación para comprobar si el nombre del producto ya existe
-    const productExists = products.some(
-      (product) => product.name.toLowerCase() === productName.toLowerCase()
-    );
+  const productExists = products.some(
+    (product) => product.name.toLowerCase() === productName.toLowerCase()
+  );
 
-    if (productExists) {
-      alert('Un producto con este nombre ya existe.');
-      setLoading(false);
-      return;
+  if (productExists) {
+    alert('Un producto con este nombre ya existe.');
+    setLoading(false);
+    return;
+  }
+
+  let imageUrl = '';
+
+  if (productImage) {
+    const imagePath = await handleImageUpload(productImage);
+
+    if (imagePath) {
+      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
     }
+  }
 
-    let imageUrl = '';
-    if (productImage) {
-      const imageExists = await checkImageExists(productImage.name);
-      if (imageExists) {
-        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${productImage.name}`;
-      } else {
-        const imagePath = await handleImageUpload(productImage);
-        if (imagePath) {
-          imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
-        }
+  const { data, error } = await supabase
+    .from('products')
+    .insert([
+      {
+        name: productName,
+        description: productDescription,
+        price: productPrice,
+        link: productLink,
+        category_id: selectedCategory,
+        subcategory_id: selectedSubcategory,
+        image_url: imageUrl,
+        isedited: false,
+        isdeleted: false,
+        brand_id: selectedBrand || null,
+      },
+    ])
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      link,
+      category_id,
+      subcategory_id,
+      image_url,
+      isedited,
+      isdeleted,
+      brand_id
+    `);
+
+  if (error) {
+    console.error('Error adding product:', error);
+    alert('Error adding product: ' + error.message);
+  } else if (data && data.length > 0) {
+    setProducts((prevProducts) => [...prevProducts, data[0]]);
+
+    setProductName('');
+    setProductDescription('');
+    setProductPrice(0);
+    setProductLink('');
+    setSelectedCategory(1);
+    setSelectedSubcategory(1);
+    setProductImage(null);
+    setSelectedBrand('');
+    setOpen(false);
+    setEditProductIsEdited(false);
+  }
+
+  setLoading(false);
+};
+
+const handleSaveEdit = async () => {
+  if (!editProductId) return;
+
+  setLoading(true);
+
+  let imageUrl = '';
+  const currentProduct = products.find(
+    (product) => product.id === editProductId
+  );
+
+  if (editProductImage) {
+    if (currentProduct?.image_url) {
+      const previousImagePath = currentProduct.image_url
+        .split('/products/')
+        .pop();
+
+      if (previousImagePath) {
+        await handleImageDelete(previousImagePath);
       }
     }
 
-    const { data, error } = await supabase
-      .from('products')
-      .insert([
-        {
-          name: productName,
-          description: productDescription,
-          price: productPrice,
-          link: productLink,
-          category_id: selectedCategory,
-          subcategory_id: selectedSubcategory,
-          image_url: imageUrl,
-          isedited: false,
-          isdeleted: false,
-          brand_id: selectedBrand,
-        },
-      ])
-      .select('*');
-    if (error) {
-      console.error('Error adding product:', error);
-      alert('Error adding product: ' + error.message);
-    } else if (data && data.length > 0) {
-      setProducts([...products, data[0]]);
-      setProductName('');
-      setProductDescription('');
-      setProductPrice(0);
-      setProductLink('');
-      setSelectedCategory(1);
-      setSelectedSubcategory(1);
-      setProductImage(null);
-      setSelectedBrand(1);
-      setOpen(false);
-      setEditProductIsEdited(false);
+    const imagePath = await handleImageUpload(editProductImage);
+
+    if (imagePath) {
+      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
     }
-    setLoading(false);
+  } else {
+    imageUrl = currentProduct?.image_url || '';
+  }
+
+  const updateData = {
+    name: editProductName,
+    description: editProductDescription,
+    price: editProductPrice,
+    link: editProductLink,
+    category_id: Number(editSelectedCategory) || null,
+    subcategory_id: Number(editSelectedSubcategory) || null,
+    image_url: imageUrl,
+    isedited: editProductIsEdited,
+    brand_id: Number(editSelectedBrand) || null,
   };
 
-  const handleSaveEdit = async () => {
-    setLoading(true);
-    let imageUrl = '';
-    let imagePath = null;
-    const currentProduct = products.find(
-      (product) => product.id === editProductId
+  const { data, error } = await supabase
+    .from('products')
+    .update(updateData)
+    .eq('id', editProductId)
+    .select(`
+      id,
+      name,
+      description,
+      price,
+      link,
+      category_id,
+      subcategory_id,
+      image_url,
+      isedited,
+      isdeleted,
+      brand_id
+    `);
+
+  if (error) {
+    console.error('Error updating product:', error);
+    alert('Error al guardar los cambios: ' + error.message);
+  } else if (data && data.length > 0) {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === editProductId ? { ...product, ...data[0] } : product
+      )
     );
 
-    if (editProductImage) {
-      const imageExists = await checkImageExists(editProductImage.name);
-      if (imageExists) {
-        imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/public/${editProductImage.name}`;
-      } else {
-        if (currentProduct?.image_url) {
-          const previousImagePath = currentProduct.image_url
-            .split('/')
-            .slice(4)
-            .join('/');
-          await handleImageDelete(previousImagePath);
-        }
-        imagePath = await handleImageUpload(editProductImage);
-        if (imagePath) {
-          imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
-        }
-      }
-    } else {
-      imageUrl = currentProduct?.image_url || '';
-    }
+    resetEditState();
+    setModalOpen(false);
+  }
 
-    const updateData = {
-      name: editProductName,
-      description: editProductDescription,
-      price: editProductPrice,
-      link: editProductLink,
-      category_id: Number(editSelectedCategory) || null,
-      subcategory_id: Number(editSelectedSubcategory) || null,
-      image_url: imageUrl,
-      isedited: editProductIsEdited,
-      brand_id: Number(editSelectedBrand) || null, // Ensure this is either a valid number or null
-    };
-
-    const { data, error } = await supabase
-      .from('products')
-      .update(updateData)
-      .eq('id', editProductId)
-      .select('*');
-
-    if (error) {
-      console.error('Error updating product:', error);
-      alert('Error al guardar los cambios: ' + error.message);
-    } else if (data && data.length > 0) {
-      setProducts(
-        products.map((product) =>
-          product.id === editProductId ? { ...product, ...data[0] } : product
-        )
-      );
-      resetEditState();
-      setModalOpen(false);
-    }
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   const handleEditProduct = (product: Product) => {
     if (product.isdeleted) {
@@ -497,33 +561,37 @@ const Products: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDeleteProduct = async (id: number) => {
-    setLoading(true);
-    const productToDelete = products.find((product) => product.id === id);
+const handleDeleteProduct = async (id: number) => {
+  setLoading(true);
 
-    if (productToDelete) {
-      // Actualiza el campo isdeleted en lugar de eliminar el producto
-      const { error } = await supabase
-        .from('products')
-        .update({ isdeleted: !productToDelete.isdeleted }) // Alterna el estado de isdeleted
-        .eq('id', id);
+  const productToDelete = products.find((product) => product.id === id);
 
-      if (error) {
-        console.error('Error deleting product:', error);
-      } else {
-        // Actualiza el estado local de los productos
-        setProducts(
-          products.map((product) =>
-            product.id === id
-              ? { ...product, isdeleted: !product.isdeleted }
-              : product
-          )
-        );
-      }
-    }
-
+  if (!productToDelete) {
     setLoading(false);
-  };
+    return;
+  }
+
+  const newDeletedStatus = !productToDelete.isdeleted;
+
+  const { error } = await supabase
+    .from('products')
+    .update({ isdeleted: newDeletedStatus })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting product:', error);
+  } else {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === id
+          ? { ...product, isdeleted: newDeletedStatus }
+          : product
+      )
+    );
+  }
+
+  setLoading(false);
+};
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -1649,10 +1717,11 @@ const Products: React.FC = () => {
                     );
                     if (productToUpdate && productToUpdate.image_url) {
                       const previousImagePath = productToUpdate.image_url
-                        .split('/')
-                        .slice(4)
-                        .join('/');
-                      await handleImageDelete(previousImagePath);
+  .split('/products/')
+  .pop();
+                      if (previousImagePath) {
+  await handleImageDelete(previousImagePath);
+}
                       const { data, error } = await supabase
                         .from('products')
                         .update({ image_url: null })
