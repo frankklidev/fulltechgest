@@ -616,30 +616,43 @@ const handleDeleteProduct = async (id: number) => {
     setCurrentPage(1); // Resetear a la primera página cuando el término de búsqueda cambia
   };
 
-  const filteredProducts = products.filter((product) => {
-    const category = categories.find(
-      (category) => category.id === product.category_id
-    );
-    const subcategory = subcategories.find(
-      (subcategory) => subcategory.id === product.subcategory_id
-    );
+const normalizeText = (value: unknown) => {
+  return String(value ?? '').toLowerCase().trim();
+};
 
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.price.toString().includes(searchTerm.toLowerCase()) ||
-      product.link.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (category &&
-        category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (subcategory &&
-        subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
+const filteredProducts = products.filter((product) => {
+  const category = categories.find(
+    (category) => category.id === product.category_id
+  );
 
-    const matchesFilter = filterNew
-      ? !product.link || product.isdeleted || product.isedited
-      : true;
+  const subcategory = subcategories.find(
+    (subcategory) => subcategory.id === product.subcategory_id
+  );
 
-    return matchesSearch && matchesFilter && (!product.isdeleted || filterNew);
-  });
+  const search = normalizeText(searchTerm);
+
+  const productName = normalizeText(product.name);
+  const productDescription = normalizeText(product.description);
+  const productPrice = normalizeText(product.price);
+  const productLink = normalizeText(product.link);
+  const categoryName = normalizeText(category?.name);
+  const subcategoryName = normalizeText(subcategory?.name);
+
+  const matchesSearch =
+    !search ||
+    productName.includes(search) ||
+    productDescription.includes(search) ||
+    productPrice.includes(search) ||
+    productLink.includes(search) ||
+    categoryName.includes(search) ||
+    subcategoryName.includes(search);
+
+  const matchesFilter = filterNew
+    ? !product.link || product.isdeleted || product.isedited
+    : true;
+
+  return matchesSearch && matchesFilter && (!product.isdeleted || filterNew);
+});
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
