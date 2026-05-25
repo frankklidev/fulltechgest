@@ -331,35 +331,53 @@ const fetchProducts = async () => {
   };
 
 const handleImageUpload = async (file: File) => {
-  const compressedFile = await compressImage(file, {
-    maxSizeMB: 0.25, // máximo aprox 250KB
-    maxWidthOrHeight: 1000,
-    useWebWorker: true,
-    fileType: 'image/webp',
-  });
-
-  const safeFileName = file.name
-    .toLowerCase()
-    .replace(/\.[^/.]+$/, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9.-]/g, '');
-
-  const filePath = `public/${Date.now()}-${safeFileName}.webp`;
-
-  const { data, error } = await supabase.storage
-    .from('products')
-    .upload(filePath, compressedFile, {
-      cacheControl: '31536000',
-      upsert: true,
-      contentType: 'image/webp',
+  try {
+    const compressedFile = await compressImage(file, {
+      maxSizeMB: 0.25,
+      maxWidthOrHeight: 1000,
+      useWebWorker: true,
+      fileType: 'image/webp',
     });
 
-  if (error) {
-    console.error('Error uploading image:', error);
+    const safeFileName =
+      file.name
+        .toLowerCase()
+        .replace(/\.[^/.]+$/, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9.-]/g, '') || 'product-image';
+
+    const filePath = `public/${Date.now()}-${safeFileName}.webp`;
+
+    const { data, error } = await supabase.storage
+      .from('products')
+      .upload(filePath, compressedFile, {
+        cacheControl: '31536000',
+        upsert: true,
+        contentType: 'image/webp',
+      });
+
+    if (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('products')
+      .getPublicUrl(data.path);
+
+    console.log('Imagen subida:', {
+      path: data.path,
+      publicUrl: publicUrlData.publicUrl,
+    });
+
+    return {
+      path: data.path,
+      publicUrl: publicUrlData.publicUrl,
+    };
+  } catch (error) {
+    console.error('Error inesperado subiendo imagen:', error);
     return null;
   }
-
-  return data.path;
 };
 
   const handleImageDelete = async (imagePath: string) => {
@@ -387,13 +405,13 @@ const handleAddProduct = async (event: React.FormEvent<HTMLFormElement>) => {
 
   let imageUrl = '';
 
-  if (productImage) {
-    const imagePath = await handleImageUpload(productImage);
+if (productImage) {
+  const uploadedImage = await handleImageUpload(productImage);
 
-    if (imagePath) {
-      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
-    }
+  if (uploadedImage) {
+    imageUrl = uploadedImage.publicUrl;
   }
+}
 
   const { data, error } = await supabase
     .from('products')
@@ -456,25 +474,23 @@ const handleSaveEdit = async () => {
     (product) => product.id === editProductId
   );
 
-  if (editProductImage) {
-    if (currentProduct?.image_url) {
-      const previousImagePath = currentProduct.image_url
-        .split('/products/')
-        .pop();
+if (editProductImage) {
+  if (currentProduct?.image_url) {
+    const previousImagePath = getImagePathFromPublicUrl(currentProduct.image_url);
 
-      if (previousImagePath) {
-        await handleImageDelete(previousImagePath);
-      }
+    if (previousImagePath) {
+      await handleImageDelete(previousImagePath);
     }
-
-    const imagePath = await handleImageUpload(editProductImage);
-
-    if (imagePath) {
-      imageUrl = `https://irxyqvsithjknuytafcl.supabase.co/storage/v1/object/public/products/${imagePath}`;
-    }
-  } else {
-    imageUrl = currentProduct?.image_url || '';
   }
+
+  const uploadedImage = await handleImageUpload(editProductImage);
+
+  if (uploadedImage) {
+    imageUrl = uploadedImage.publicUrl;
+  }
+} else {
+  imageUrl = currentProduct?.image_url || '';
+}
 
   const updateData = {
     name: editProductName,
@@ -615,6 +631,18 @@ const handleDeleteProduct = async (id: number) => {
     setSearchTerm(event.target.value.toLowerCase());
     setCurrentPage(1); // Resetear a la primera página cuando el término de búsqueda cambia
   };
+
+  const getImagePathFromPublicUrl = (imageUrl: string | null | undefined) => {
+  if (!imageUrl) return null;
+
+  const marker = '/storage/v1/object/public/products/';
+
+  if (!imageUrl.includes(marker)) {
+    return imageUrl;
+  }
+
+  return imageUrl.split(marker)[1] || null;
+};
 
 const normalizeText = (value: unknown) => {
   return String(value ?? '').toLowerCase().trim();
@@ -1741,9 +1769,7 @@ const filteredProducts = products.filter((product) => {
                       (p) => p.id === editProductId
                     );
                     if (productToUpdate && productToUpdate.image_url) {
-                      const previousImagePath = productToUpdate.image_url
-  .split('/products/')
-  .pop();
+                     const previousImagePath = getImagePathFromPublicUrl(productToUpdate.image_url);
                       if (previousImagePath) {
   await handleImageDelete(previousImagePath);
 }
